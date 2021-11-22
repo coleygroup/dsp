@@ -129,6 +129,10 @@ dmypy.json
 .pyre/
 
 figures
+scripts
+slurm
 *.np[z,y]
 *.txt
 *.sh
+*.out
+*.err

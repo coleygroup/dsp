@@ -10,11 +10,18 @@ from boip import objectives
 from boip.optimize import optimize
 
 try:
-    ray.init(address='auto')
+    if "redis_password" in os.environ:
+        ray.init(
+            address=os.environ["ip_head"],
+            _node_ip_address=os.environ["ip_head"].split(":")[0],
+            _redis_password=os.environ["redis_password"],
+        )
+    else:
+        ray.init(address="auto")
 except ConnectionError:
     ray.init()
 except PermissionError:
-    print('Failed to create a temporary directory for ray')
+    print("Failed to create a temporary directory for ray")
     raise
 
 
