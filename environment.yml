@@ -1,0 +1,22 @@
+name: boip
+
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+
+dependencies:
+  - botorch
+  - cudatoolkit
+  - gpytorch
+  - pip
+  - python=3.8
+  - pytorch
+  - pip:
+    - matplotlib
+    - numpy
+    - ray[default]
+    - seaborn
+    - scipy
+    - sklearn
+    - tqdm
