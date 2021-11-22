@@ -136,3 +136,4 @@ slurm
 *.sh
 *.out
 *.err
+*.png

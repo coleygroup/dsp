@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 from itertools import repeat, zip_longest
 from pathlib import Path
-import sys
 from typing import Iterable, Optional, Tuple
 
 from botorch.test_functions.base import BaseTestProblem
@@ -11,9 +10,8 @@ import numpy as np
 from scipy import interpolate, stats
 import seaborn as sns
 import torch
-from torch.functional import Tensor
+from torch import Tensor
 
-# sys.path.append("boip")
 from boip import objectives
 
 sns.set_theme(style="white", context="talk")
@@ -43,7 +41,7 @@ def immediate_regret(Y, optimum: Tensor):
     return optimum - Y_star
 
 
-def interpolate_regret(T, R, budget):
+def interpolate_regret(T: np.ndarray, R: np.ndarray, budget: float):
     """interpolate the regret individual regret curves to align them for similar costs
 
     Parameters
@@ -53,7 +51,7 @@ def interpolate_regret(T, R, budget):
     R : np.ndarray
         an `r x t` array, where each entry is the immediate regret at iteration t of trial r
     budget : float
-        the total allowable cost
+        the total allowable budget
 
     Returns
     -------
@@ -108,6 +106,7 @@ def plot_IR(
     optimum: Tensor
         the optimal objective value
     budget: Optional[float], default=None
+        the maximum budget to plot until on the x-axis. If None, plot entire trace
     cost: float, default=0.
         the simulated cost of an objective function evaluation
 
@@ -138,7 +137,10 @@ def plot_IR(
         )
         ax.fill_between(t, r-r_se, r+r_se, alpha=0.3, dashes=":", lw=2.0, ec="black")
 
-    ax.set_xlabel(r"$\mathrm{CPU}\cdot\mathrm{s}$")
+    if interpolate:
+        ax.set_xlabel(r"$\mathrm{CPU}\cdot\mathrm{s}$")
+    else:
+        ax.set_xlabel("Iteration")
 
     return ax
 
@@ -189,7 +191,7 @@ def plot_surface(
 
     Parameters
     ----------
-    ax : [type]
+    ax
         the axis onto which the level surface should be plotted
     obj : BaseTestProblem
         the objective to which the level surface corresponds
@@ -249,8 +251,8 @@ def plot_surface(
     return ax
 
 def create_figure(
-    objs,
-    npzdirs,
+    objs: Iterable[BaseTestProblem],
+    npzdirs: Iterable[str],
     titles: Optional[Iterable[str]] = None,
     Ns: Iterable[int] = None,
     choicess: Optional[Iterable[Tensor]] = None,
@@ -259,6 +261,34 @@ def create_figure(
     cost: float = 0.,
     surface: bool = True
 ):
+    """
+
+    Parameters
+    ----------
+    objs : Iterable[BaseTestProblem]
+        the objective corresponding to each pair of subplots
+    npzdirs : Iterable[str]
+        the directories containing the respective .npz files
+    titles : Optional[Iterable[str]], default=None
+        the title for each subplot
+    Ns : Iterable[int], default=None
+        the initialization size for each objective
+    choicess : Optional[Iterable[Tensor]], default=None
+        the input space for each objective
+    interpolate : bool, default=False
+        whether to interpolate costs to align trials by time
+    budget : Optional[float], default=None
+        the maximum budget to plot. If None, plot entire trace
+    cost : float, default=0.
+        the cost of an objective function evaluation
+    surface : bool, default=True
+        whether to plot the contour plots of the objective surfaces
+
+    Returns
+    -------
+    fig
+        the figure
+    """
     fig, axs = plt.subplots(
         2 if surface else 1, len(objs), figsize=(6 * len(objs), 11 / (1 if surface else 2))
     )
@@ -318,16 +348,14 @@ def create_figure(
         right=False,
     )
     
-    # if sizes:
-    #     axs[0][0].get_shared_y_axes().join(*axs[0])
-    #     axs[0][0].get_shared_x_axes().join(*axs[0])
-    #     axs[0][-1].autoscale()
-    #     # print(axs)
-    #     [fig.delaxes(ax) for ax in axs[0]]
+    if not surface:
+        bottom_axs[0].get_shared_y_axes().join(*bottom_axs)
+        bottom_axs[0].get_shared_x_axes().join(*bottom_axs)
+        bottom_axs[-1].autoscale()
 
-    bottom_axs[0].get_shared_y_axes().join(*bottom_axs)
-    bottom_axs[0].get_shared_x_axes().join(*bottom_axs)
-    bottom_axs[-1].autoscale()
+    # bottom_axs[0].get_shared_y_axes().join(*bottom_axs)
+    # bottom_axs[0].get_shared_x_axes().join(*bottom_axs)
+    # bottom_axs[-1].autoscale()
 
     bottom_axs[0].set_ylabel("Immediate Regret")
     fig.tight_layout()
@@ -335,32 +363,52 @@ def create_figure(
 
     return fig
 
-def create_sizes_fig(npzdirs, titles, Ns, interpolate: bool = False):
+def create_sizes_fig(
+    npzdirs, titles, Ns, interpolate: bool = False, budget: Optional[float] = None, cost: float = 0.
+):
     fig, ax = plt.subplots(1, 1, figsize=(6, 6))
 
+    sizes = []
+    min_size = float("inf")
     for npzdir, title, N in zip(npzdirs, titles, Ns):
         S =  np.load(f"{npzdir}/S.npz")["PRUNE"]
         T = np.load(f"{npzdir}/T.npz")["PRUNE"]
 
         if interpolate:
-            c, S = interpolate_regret(T[:, N:], S[:, N:], 10*int(np.log10(T.max())))
+            base_cost = cost * np.arange(S.shape[1])[N:]
+            budget = budget or 10*(T[:,-1].max() // 10)
+            t, S = interpolate_regret(T[:, N:] + base_cost, S[:, N:], budget)
         else:
-            c = np.arange(S.shape[1])
+            t = np.arange(S.shape[1]) + 1
 
         s = S.mean(0)
         s_se = stats.sem(S, 0)
         ax.plot(
-            c,
+            t,
             s,
             lw=5,
             path_effects=[pe.Stroke(linewidth=7.5, foreground="k"), pe.Normal()],
-            label=f"N={N}"
+            label=title
         )
-        ax.fill_between(c, s-s_se, s+s_se, alpha=0.3, dashes=":", lw=2.0, ec="black")
+        ax.fill_between(t, s-s_se, s+s_se, alpha=0.3, dashes=":", lw=2.0, ec="black")
 
-    ax.legend(loc="upper left")
+        sizes.append(s[0])
+        min_size = min(min_size, s[-1])
+
+    ax.legend(loc="upper right")
     ax.set_ylabel("Input space size")
-    ax.set_xlabel(r"$\mathrm{CPU}\cdot\mathrm{s}$")
+    
+    sizes = sorted(sizes, reverse=True)
+    for s1, s2 in zip(sizes, sizes[1:]):
+        if s1 / s2 >= 10:
+            ax.set_yscale("log")
+            break
+            ax.set_ylim(bottom=10**int(np.log10(min_size)))
+    if interpolate:
+        ax.set_xlabel(r"$\mathrm{CPU}\cdot\mathrm{s}$")
+    else:
+        ax.set_xlabel("Iteration")
+
     fig.tight_layout()
 
     return fig
@@ -428,10 +476,11 @@ def main():
     if args.sizes:
         fig = create_sizes_fig(
             args.npzdirs,
-            args.titles,
+            args.titles or (str(o)[:-2] for o in objs),
             args.N if len(args.N) > 1 else repeat(args.N[0]),
             not args.no_interpolate,
-            args.budget
+            args.budget,
+            args.objective_cost
         )
         name = Path(args.output).stem + '-sizes.png'
         filepath = Path(args.output).with_name(name)
