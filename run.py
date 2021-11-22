@@ -26,7 +26,7 @@ def get_results_from_trials(trials: List[Tuple]) -> Tuple[np.ndarray, np.ndarray
     X = np.stack([X.cpu().numpy() for X in Xs]).astype("f")
     Y = np.stack([Y.flatten().cpu().numpy() for Y in Ys]).astype("f")
     S = np.stack(Ss).astype("I")
-    T = np.stack(Ts).astype("f")
+    T = np.stack(Ts)
 
     return X, Y, S, T
 

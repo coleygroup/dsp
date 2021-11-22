@@ -1,4 +1,5 @@
 from typing import Set
+
 from botorch import test_functions
 from botorch.test_functions import SyntheticTestFunction
 

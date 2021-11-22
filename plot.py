@@ -1,9 +1,10 @@
 from argparse import ArgumentParser
 from itertools import repeat, zip_longest
+from pathlib import Path
 import sys
 from typing import Iterable, Optional, Tuple
-from botorch.test_functions.base import BaseTestProblem
 
+from botorch.test_functions.base import BaseTestProblem
 from matplotlib import pyplot as plt
 from matplotlib import patheffects as pe
 import numpy as np
@@ -63,7 +64,7 @@ def interpolate_regret(T, R, budget):
         an `r x N` array, where each entry corresponds to the immediate regret
         at a given cost c of trial r
     """
-    c = np.linspace(0, budget, 100)
+    c = np.linspace(T[:,0].min(), budget, R.shape[1])
     R_interp = np.empty((len(R), len(c)))
 
     for i in range(len(T)):
@@ -82,7 +83,9 @@ def plot_IR(
     N: int,
     optimum: Tensor,
     labels: Optional[Iterable[str]] = None,
-    interpolate: bool = True
+    interpolate: bool = True,
+    budget: Optional[float] = None,
+    cost: float = 0.
 ):
     """plot the immediate regret curves of the dataset onto axis ax
 
@@ -104,6 +107,9 @@ def plot_IR(
         the label of each trace
     optimum: Tensor
         the optimal objective value
+    budget: Optional[float], default=None
+    cost: float, default=0.
+        the simulated cost of an objective function evaluation
 
     Returns
     -------
@@ -111,22 +117,26 @@ def plot_IR(
         the axis on which the curves were plotted
     """
     for Y, T, label in zip_longest(Ys, Ts, labels):
+        base_cost = cost * np.arange(Y.shape[1])[N:]
         R = immediate_regret(Y, optimum)[:, N:]
-        c = np.arange(R.shape[1])
+        T = T[:, N:]
 
         if interpolate:
-            c, R = interpolate_regret(T[:, N:], R, 60)
+            budget = budget or 10*(T[:, -1].max() // 10)
+            t, R = interpolate_regret((T+base_cost), R, budget)
+        else:
+            t = base_cost
 
         r = R.mean(0)
         r_se = stats.sem(R, 0)
         ax.plot(
-            c,
+            t,
             r,
             label=label,
             lw=5,
             path_effects=[pe.Stroke(linewidth=7.5, foreground="k"), pe.Normal()],
         )
-        ax.fill_between(c, r-r_se, r+r_se, alpha=0.3, dashes=":", lw=2.0, ec="black")
+        ax.fill_between(t, r-r_se, r+r_se, alpha=0.3, dashes=":", lw=2.0, ec="black")
 
     ax.set_xlabel(r"$\mathrm{CPU}\cdot\mathrm{s}$")
 
@@ -162,7 +172,7 @@ def add_random_IR(
         lw=5,
         path_effects=[pe.Stroke(linewidth=7.5, foreground="k"), pe.Normal()],
     )
-    ax.fill_between(c, r-r_se, r+r_se, alpha=0.3, dashes=":", lw=2.0, ec="black")
+    ax.fill_between(c, r-r_se, r+r_se, color="grey", alpha=0.3, dashes=":", lw=2.0, ec="black")
 
     return ax
 
@@ -238,16 +248,25 @@ def plot_surface(
 
     return ax
 
-
 def create_figure(
     objs,
     npzdirs,
     titles: Optional[Iterable[str]] = None,
     Ns: Iterable[int] = None,
     choicess: Optional[Iterable[Tensor]] = None,
-    interpolate: bool= False
+    interpolate: bool = False,
+    budget: Optional[float] = None,
+    cost: float = 0.,
+    surface: bool = True
 ):
-    fig, axs = plt.subplots(2, len(objs), figsize=(6 * len(objs), 11))
+    fig, axs = plt.subplots(
+        2 if surface else 1, len(objs), figsize=(6 * len(objs), 11 / (1 if surface else 2))
+    )
+
+    if surface:
+        top_axs, bottom_axs = axs
+    else:
+        bottom_axs = axs
 
     titles = titles if titles is not None else repeat(None)
     axs = axs if len(objs) > 1 else [[ax] for ax in axs]
@@ -255,18 +274,14 @@ def create_figure(
     for i, (obj, npzdir, title, N, choices) in enumerate(
         zip(objs, npzdirs, titles, Ns, choicess)
     ):
-        try:
-            X_npzfile = np.load(f"{npzdir}/X.npz")
-            Xs = [X_npzfile[k] for k in X_npzfile]
-        except FileNotFoundError:
-            print("Inputs array not found. No points will be overlaid!")
-            Xs = None
+        X_npz = np.load(f"{npzdir}/X.npz")
+        Xs = [X_npz[k] for k in X_npz]
 
-        Y_npzfile = np.load(f"{npzdir}/Y.npz")
-        Ys = [Y_npzfile[k] for k in Y_npzfile]
+        Y_npz = np.load(f"{npzdir}/Y.npz")
+        Ys = [Y_npz[k] for k in Y_npz]
 
-        T_npzfile = np.load(f"{npzdir}/T.npz")
-        Ts = [T_npzfile[k] for k in T_npzfile]
+        T_npz = np.load(f"{npzdir}/T.npz")
+        Ts = [T_npz[k] for k in T_npz]
 
         if choices is not None:
             optimal_idx = obj(choices).argmax()
@@ -276,12 +291,16 @@ def create_figure(
             optimal_choice = obj.optimizers[0]
             optimum = obj.optimal_value
 
-        plot_surface(axs[0][i], obj, Xs, optimal_choice, npzdir, N)
-        ax = plot_IR(axs[1][i], Ys, Ts, N, optimum, Y_npzfile.files, interpolate)
-        if not interpolate:
-            add_random_IR(ax, obj, N, optimum, Ys[0].shape, choices)
+        if surface:
+            plot_surface(top_axs[i], obj, Xs, optimal_choice, title, N)
+        else:
+            bottom_axs[i].set_title(title)
 
-    handles, labels = axs[1][0].get_legend_handles_labels()
+        ax = plot_IR(bottom_axs[i], Ys, Ts, N, optimum, Y_npz.files, interpolate, budget, cost)
+        # if not interpolate:
+        #     add_random_IR(ax, obj, N, optimum, Ys[0].shape, choices)
+
+    handles, labels = bottom_axs[0].get_legend_handles_labels()
     fig.legend(
         handles,
         labels,
@@ -298,21 +317,52 @@ def create_figure(
         left=False,
         right=False,
     )
-    # fig.text(
-    #     0.945,
-    #     0.03,
-    #     f"N: {N} | objective cost: {objective_cost:0.1f} | retraining cost: {retraining_cost:0.2f}",
-    #     horizontalalignment="right",
-    #     verticalalignment="center",
-    #     bbox=dict(edgecolor="gray", fc="white", boxstyle="Square, pad=0.3"),
-    # )
-    axs[1][0].set_ylabel("Immediate Regret")
+    
+    # if sizes:
+    #     axs[0][0].get_shared_y_axes().join(*axs[0])
+    #     axs[0][0].get_shared_x_axes().join(*axs[0])
+    #     axs[0][-1].autoscale()
+    #     # print(axs)
+    #     [fig.delaxes(ax) for ax in axs[0]]
+
+    bottom_axs[0].get_shared_y_axes().join(*bottom_axs)
+    bottom_axs[0].get_shared_x_axes().join(*bottom_axs)
+    bottom_axs[-1].autoscale()
+
+    bottom_axs[0].set_ylabel("Immediate Regret")
     fig.tight_layout()
     fig.subplots_adjust(wspace=0.175, hspace=0.175)
 
-    axs[1][0].get_shared_y_axes().join(*axs[1])
-    axs[1][0].get_shared_x_axes().join(*axs[1])
-    axs[1][-1].autoscale()
+    return fig
+
+def create_sizes_fig(npzdirs, titles, Ns, interpolate: bool = False):
+    fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+
+    for npzdir, title, N in zip(npzdirs, titles, Ns):
+        S =  np.load(f"{npzdir}/S.npz")["PRUNE"]
+        T = np.load(f"{npzdir}/T.npz")["PRUNE"]
+
+        if interpolate:
+            c, S = interpolate_regret(T[:, N:], S[:, N:], 10*int(np.log10(T.max())))
+        else:
+            c = np.arange(S.shape[1])
+
+        s = S.mean(0)
+        s_se = stats.sem(S, 0)
+        ax.plot(
+            c,
+            s,
+            lw=5,
+            path_effects=[pe.Stroke(linewidth=7.5, foreground="k"), pe.Normal()],
+            label=f"N={N}"
+        )
+        ax.fill_between(c, s-s_se, s+s_se, alpha=0.3, dashes=":", lw=2.0, ec="black")
+
+    ax.legend(loc="upper left")
+    ax.set_ylabel("Input space size")
+    ax.set_xlabel(r"$\mathrm{CPU}\cdot\mathrm{s}$")
+    fig.tight_layout()
+
     return fig
 
 
@@ -327,7 +377,7 @@ def main():
         "-c",
         "--num-choices",
         type=int,
-        default=1000,
+        default=10000,
         nargs="+",
         help="the number of points with which to discretize the objective function",
     )
@@ -339,6 +389,10 @@ def main():
         help="the random seed to use for discrete landscapes",
     )
     parser.add_argument("--no-interpolate", action="store_true")
+    parser.add_argument("--budget", type=float)
+    parser.add_argument("-oc", "--objective-cost", type=float, default=0.)
+    parser.add_argument("--sizes", action="store_true")
+    parser.add_argument("--no-surface", action="store_true")
     parser.add_argument("--output", help="the name under which to save the figure")
 
     args = parser.parse_args()
@@ -352,24 +406,36 @@ def main():
             else repeat(args.discretization_seed[0])
         )
         choicess = [
-            objectives.discretize(obj, N, seed)
-            for obj, N, seed in zip(objs, num_choices, seeds)
+            objectives.discretize(obj, N, seed) for obj, N, seed in zip(objs, num_choices, seeds)
         ]
     else:
         choicess = None
 
-    # strategy = Strategy[args.strategy.upper()] if args.strategy is not None else None
     fig = create_figure(
         objs,
         args.npzdirs,
         args.titles,
-        args.N,
+        args.N if len(args.N) > 1 else repeat(args.N[0]),
         choicess,
-        not args.no_interpolate
+        not args.no_interpolate,
+        args.budget,
+        args.objective_cost,
+        not args.no_surface
     )
     fig.savefig(args.output, dpi=200, bbox_inches="tight")
     print(f"Figure saved to {args.output}")
 
-
+    if args.sizes:
+        fig = create_sizes_fig(
+            args.npzdirs,
+            args.titles,
+            args.N if len(args.N) > 1 else repeat(args.N[0]),
+            not args.no_interpolate,
+            args.budget
+        )
+        name = Path(args.output).stem + '-sizes.png'
+        filepath = Path(args.output).with_name(name)
+        fig.savefig(filepath, dpi=200, bbox_inches="tight")
+        print(f"Figure saved to {filepath}")
 if __name__ == "__main__":
     main()
