@@ -25,6 +25,7 @@ except PermissionError:
     print("Failed to create a temporary directory for ray")
     raise
 
+print(f"Connected to ray cluster with resources: {ray.cluster_resources()}")
 
 optimize = ray.remote(optimize)
 
