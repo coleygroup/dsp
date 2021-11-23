@@ -1,7 +1,7 @@
 from timeit import default_timer as time
-from typing import Tuple
+from typing import Optional, Tuple
 
-from botorch.acquisition import UpperConfidenceBound
+from botorch.acquisition import UpperConfidenceBound, qUpperConfidenceBound
 from botorch.test_functions.base import BaseTestProblem
 from botorch.models import SingleTaskGP
 from botorch.optim import optimize_acqf_discrete
@@ -10,10 +10,10 @@ import numpy as np
 import torch
 from torch import Tensor
 from torch.optim import Adam
-from tqdm import trange
 
 from boip.prune import prune
 from boip.train import fit_model
+from boip.window import window_size
 
 NUM_RESTARTS = 20
 RAW_SAMPLES = 20
@@ -42,6 +42,13 @@ def optimize(
         the discrete choices
     prune : bool, default=False
         whether to prune the input space irreversibly
+    k : int, default=1
+        the rank of point to compare each candidate pruning point to
+    prob : float, default=0.
+        the mimimum probability a candidate point must have to improve upon the k-th best
+        predicted mean in order to be retained
+    verbose : bool, default=False
+        whether to print
 
     Returns
     -------
@@ -50,8 +57,8 @@ def optimize(
     Y : Tensor
         an `(N+T) x 1` tensor of the associated objective values
     S : np.ndarray
-        an `(N+T)` length vector containing the size of the solution space at each iteration
-    S : np.ndarray
+        an `(N+T)` length vector containing the size of the input space at each iteration
+    dT : np.ndarray
         an `(N+T)` length vector containing the time elapsed from the start of optimization at the
         given iteration. The first N entries are always 0
     """
@@ -63,34 +70,46 @@ def optimize(
     S[:] = len(choices)
 
     dT = np.empty(N+T)
-    dT[:N] = time()
+    start = time()
 
-    for t in trange(T, desc="Optimizing", leave=False, disable=not verbose):
-        model = SingleTaskGP(X, (Y - Y.mean(dim=0)) / Y.std(dim=0))
+    u = 0
+    t = 0
+
+    while t < T:
+        model = SingleTaskGP(X, (Y - Y.mean(0)) / Y.std(0))
         mll = ExactMarginalLogLikelihood(model.likelihood, model)
         optim = Adam(model.parameters(), lr=0.001)
         fit_model(X, model, optim, mll)
 
         if prune_inputs:
             idxs, E_opt = prune(choices, model, k, prob)
-            choices = choices[idxs]
-            if verbose:
-                print(f"Pruned pool to {len(idxs)} choices!")
-                print(f"Expected optima pruned: {E_opt}")
-        S[N+t] = len(choices)
-        dT[N+t] = time()
-        acqf = UpperConfidenceBound(model, beta=2)
-        X_t, _ = optimize_acqf_discrete(acqf, 1, choices)
+            if len(idxs) == len(choices):
+                u += 1
+                if verbose:
+                    print("Did not prune pool!")
+            else:
+                #NOTE(degraff): could implement something here about fast recovery
+                u = 0
+                choices = choices[idxs]
+                if verbose:
+                    print(f"Pruned pool to {len(idxs)} choices!")
+                    print(f"Expected optima pruned: {E_opt}")
 
-        # if choices is None:
-        #     X_t, _ = optimize_acqf(acqf, obj.bounds, 1, NUM_RESTARTS, RAW_SAMPLES)
-        # else:
-
+        q = min(window_size(u), T-t)
+        acqf = qUpperConfidenceBound(model, beta=2)
+        X_t, _ = optimize_acqf_discrete(acqf, q, choices)
 
         Y_t = obj(X_t).reshape(-1, 1)
 
         X = torch.cat((X, X_t))
         Y = torch.cat((Y, Y_t))
 
-    dT[N:] -= dT[0]
+        S[N+t:N+t+q] = len(choices)
+        dT[N+t:N+t+q] = time()
+
+        t += q
+
+    dT[:N] = 0
+    dT[N:] -= start
+    
     return X, Y, S, dT

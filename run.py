@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 import os
 from pathlib import Path
 from typing import List, Tuple
+
 import numpy as np
 import ray
 from tqdm import tqdm
