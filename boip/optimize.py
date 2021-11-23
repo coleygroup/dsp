@@ -94,11 +94,14 @@ def optimize(
                 if verbose:
                     print(f"Pruned pool to {len(idxs)} choices!")
                     print(f"Expected optima pruned: {E_opt}")
+            q = min(window_size(u), T-t)
+        else:
+            q = 1
 
-        q = min(window_size(u), T-t)
-        acqf = qUpperConfidenceBound(model, beta=2)
-        X_t, _ = optimize_acqf_discrete(acqf, q, choices)
-
+        acqf = UpperConfidenceBound(model, beta=2)
+        A = acqf(torch.unsqueeze(choices, 1))
+        
+        X_t = choices[torch.topk(A, q, dim=0, sorted=True)[1]]
         Y_t = obj(X_t).reshape(-1, 1)
 
         X = torch.cat((X, X_t))
@@ -111,5 +114,5 @@ def optimize(
 
     dT[:N] = 0
     dT[N:] -= start
-    
+
     return X, Y, S, dT

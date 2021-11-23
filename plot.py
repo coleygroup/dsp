@@ -116,15 +116,15 @@ def plot_IR(
         the axis on which the curves were plotted
     """
     for Y, T, label in zip_longest(Ys, Ts, labels):
-        base_cost = cost * np.arange(Y.shape[1])[N:]
         R = immediate_regret(Y, optimum)[:, N:]
         T = T[:, N:]
 
         if interpolate:
+            base_cost = cost * np.arange(Y.shape[1])[N:]
             budget = budget or 10*(T[:, -1].max() // 10)
             t, R = interpolate_regret((T+base_cost), R, budget)
         else:
-            t = base_cost
+            t = np.arange(T.shape[1])
 
         r = R.mean(0)
         r_se = stats.sem(R, 0)
@@ -350,7 +350,7 @@ def create_figure(
     
     if not surface:
         bottom_axs[0].get_shared_y_axes().join(*bottom_axs)
-        bottom_axs[0].get_shared_x_axes().join(*bottom_axs)
+        # bottom_axs[0].get_shared_x_axes().join(*bottom_axs)
         bottom_axs[-1].autoscale()
 
     # bottom_axs[0].get_shared_y_axes().join(*bottom_axs)
