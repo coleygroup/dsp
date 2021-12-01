@@ -137,3 +137,4 @@ slurm
 *.out
 *.err
 *.png
+*.json
