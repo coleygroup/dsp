@@ -15,9 +15,6 @@ from boip.prune import prune
 from boip.train import fit_model
 from boip.window import window_size
 
-NUM_RESTARTS = 20
-RAW_SAMPLES = 20
-
 def optimize(
     obj: BaseTestProblem,
     N: int,
