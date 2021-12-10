@@ -11,6 +11,7 @@ import torch
 from torch import Tensor
 from torch.optim import Adam
 
+from boip.initialize import initialize
 from boip.prune import prune
 from boip.train import fit_model
 from boip.window import window_size
@@ -23,7 +24,8 @@ def optimize(
     prune_inputs: bool = False,
     k: int = 1,
     prob: float = 0.,
-    verbose: bool = False
+    verbose: bool = False,
+    init_seed: Optional[int] = None
 ) -> Tuple[Tensor, Tensor]:
     """Optimize the input objective
 
@@ -46,6 +48,8 @@ def optimize(
         predicted mean in order to be retained
     verbose : bool, default=False
         whether to print
+    init_seed: Optional[int] = None
+        the seed with which to sample random initial points
 
     Returns
     -------
@@ -59,8 +63,9 @@ def optimize(
         an `(N+T)` length vector containing the time elapsed from the start of optimization at the
         given iteration. The first N entries are always 0
     """
-    idxs = torch.randperm(len(choices))[:N]
-    X = choices[idxs]
+    # idxs = torch.randperm(len(choices))[:N]
+    # X = choices[idxs]
+    X = initialize(obj, N, choices, init_seed)
     Y = obj(X).reshape(-1, 1)
 
     S = np.empty(N+T)
