@@ -1,14 +1,23 @@
+from typing import Tuple
+
 import torch
 from torch import Tensor
 
-def prune(choices: Tensor, model, k, prob) -> Tensor:
-    with torch.no_grad():
-        Y_hat = model.posterior(choices)
+@torch.inference_mode()
+def prune(choices: Tensor, model, k, prob) -> Tuple[Tensor, Tensor]:
+    Y_hat = model.posterior(choices)
 
-    # import pdb; pdb.set_trace()
-    threshold = torch.topk(Y_hat.mean, k, dim=0, sorted=True)[0][-1]
-    P = prob_above(Y_hat.mean, Y_hat.variance, threshold).sum(1)
-    idxs = torch.arange(len(Y_hat.mean))[P >= prob]
+    return retained_idxs(Y_hat.mean, Y_hat.variance, k, prob)
+    # threshold = torch.topk(Y_hat.mean, k, dim=0, sorted=True)[0][-1]
+    # P = prob_above(Y_hat.mean, Y_hat.variance, threshold).sum(1)
+    # idxs = torch.arange(len(Y_hat.mean))[P >= prob]
+
+    # return idxs, P[P < prob].sum()
+
+def retained_idxs(Y_mean, Y_var, k, prob) -> Tuple[Tensor, Tensor]:
+    threshold = torch.topk(Y_mean, k, dim=0, sorted=True)[0][-1]
+    P = prob_above(Y_mean, Y_var, threshold).sum(1)
+    idxs = torch.arange(len(Y_mean))[P >= prob]
 
     return idxs, P[P < prob].sum()
 

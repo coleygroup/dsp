@@ -21,7 +21,6 @@ def N(request):
 def seed(request):
     return request.param
 
-
 def test_invalid_objective(uuid):
     with pytest.raises(ValueError):
         objectives.build_objective(uuid)
@@ -32,13 +31,13 @@ def test_discretize_empty(obj, seed):
     assert choices1.nelement() == 0
 
 @pytest.mark.parametrize('_', range(3))
-def test_discretize_no_seed(obj, N, _):
+def test_discretize_randomness(obj, N, _):
     choices1 = objectives.discretize(obj, N, None)
     choices2 = objectives.discretize(obj, N, None)
 
     assert not torch.equal(choices1, choices2)
 
-def test_discretize(obj, N, seed):
+def test_discretize_seeded(obj, N, seed):
     choices1 = objectives.discretize(obj, N, seed)
     choices2 = objectives.discretize(obj, N, seed)
 
