@@ -25,7 +25,7 @@ def immediate_regret(Y, optimum: Tensor):
     Y : np.ndarray
         an `r x t` array, where r is the number of repeats and t is the number of observations made
         for a given trial. Each entry is the observation made at iteration t
-    optimum : Optional[Tensor]
+    optimum : Tensor
         the optimum of the objective function
 
     Returns
@@ -116,15 +116,15 @@ def plot_IR(
         the axis on which the curves were plotted
     """
     for Y, T, label in zip_longest(Ys, Ts, labels):
-        R = immediate_regret(Y, optimum)[:, N:]
-        T = T[:, N:]
+        R = immediate_regret(Y, optimum)#[:, N:]
+        # T = T[:, N:]
 
         if interpolate:
-            base_cost = cost * np.arange(Y.shape[1])[N:]
+            base_cost = cost * np.arange(Y.shape[1])#[N:]
             budget = budget or 10*(T[:, -1].max() // 10)
             t, R = interpolate_regret((T+base_cost), R, budget)
         else:
-            t = np.arange(T.shape[1])
+            t = np.arange(Y.shape[1])
 
         r = R.mean(0)
         r_se = stats.sem(R, 0)
@@ -161,7 +161,7 @@ def add_random_IR(
 
     Y = obj(X)
 
-    R = immediate_regret(Y.numpy(), optimum)[:, N:]
+    R = immediate_regret(Y.numpy(), optimum)#[:, N:]
     c = np.arange(R.shape[1])
 
     r = R.mean(0)

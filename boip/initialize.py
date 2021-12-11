@@ -19,4 +19,4 @@ def initialize(
 
         idxs = torch.randperm(len(choices))[:N]
     
-    return choices[idxs]
+    return idxs

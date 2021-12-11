@@ -1,7 +1,7 @@
 from timeit import default_timer as time
 from typing import Optional, Tuple
 
-from botorch.acquisition import UpperConfidenceBound, qUpperConfidenceBound
+from botorch.acquisition import UpperConfidenceBound
 from botorch.test_functions.base import BaseTestProblem
 from botorch.models import SingleTaskGP
 from botorch.optim import optimize_acqf_discrete
@@ -10,6 +10,7 @@ import numpy as np
 import torch
 from torch import Tensor
 from torch.optim import Adam
+from tqdm import tqdm
 
 from boip.initialize import initialize
 from boip.prune import prune
@@ -21,6 +22,7 @@ def optimize(
     N: int,
     T: int,
     choices: Tensor,
+    q: int = 1,
     prune_inputs: bool = False,
     k: int = 1,
     prob: float = 0.,
@@ -39,6 +41,8 @@ def optimize(
         the number of iterations to optimize over
     choices: Tensor
         the discrete choices
+    q : int, default=1
+        the number of points to take in each batch
     prune : bool, default=False
         whether to prune the input space irreversibly
     k : int, default=1
@@ -59,62 +63,64 @@ def optimize(
         an `(N+T) x 1` tensor of the associated objective values
     S : np.ndarray
         an `(N+T)` length vector containing the size of the input space at each iteration
-    dT : np.ndarray
-        an `(N+T)` length vector containing the time elapsed from the start of optimization at the
-        given iteration. The first N entries are always 0
+    # dT : np.ndarray
+    #     an `(N+T)` length vector containing the time elapsed from the start of optimization at the
+    #     given iteration. The first N entries are always 0
     """
-    # idxs = torch.randperm(len(choices))[:N]
-    # X = choices[idxs]
-    X = initialize(obj, N, choices, init_seed)
+    S = np.empty(T+1)
+    S[0] = len(choices)
+
+    # dT = np.empty(N+T)
+    # start = time()
+
+    idxs = initialize(obj, N, choices, init_seed)
+    X = choices[idxs]
     Y = obj(X).reshape(-1, 1)
 
-    S = np.empty(N+T)
-    S[:] = len(choices)
+    mask = torch.ones(len(choices), dtype=bool)
+    mask[idxs] = False
+    choices = choices[mask]
 
-    dT = np.empty(N+T)
-    start = time()
-
-    u = 0
-    t = 0
-
-    while t < T:
+    for t in tqdm(range(T), "Optimizing", disable=not verbose):
         model = SingleTaskGP(X, (Y - Y.mean(0)) / Y.std(0))
         mll = ExactMarginalLogLikelihood(model.likelihood, model)
         optim = Adam(model.parameters(), lr=0.001)
-        fit_model(X, model, optim, mll)
+        fit_model(X, model, optim, mll, verbose=verbose)
 
         if prune_inputs:
             idxs, E_opt = prune(choices, model, k, prob)
             if len(idxs) == len(choices):
-                u += 1
                 if verbose:
                     print("Did not prune pool!")
             else:
                 #NOTE(degraff): could implement something here about fast recovery
-                u = 0
                 choices = choices[idxs]
                 if verbose:
                     print(f"Pruned pool to {len(idxs)} choices!")
-                    print(f"Expected optima pruned: {E_opt}")
-            q = min(window_size(u), T-t)
-        else:
-            q = 1
+                    print(f"Expected optima pruned: {E_opt:0.3f}")
+
+        S[t+1] = len(choices) + q*(t+1)
 
         acqf = UpperConfidenceBound(model, beta=2)
         A = acqf(torch.unsqueeze(choices, 1))
         
-        X_t = choices[torch.topk(A, q, dim=0, sorted=True)[1]]
+        idxs = torch.topk(A, q, dim=0, sorted=True)[1]
+        X_t = choices[idxs]
         Y_t = obj(X_t).reshape(-1, 1)
+
+        mask = torch.ones(len(choices), dtype=bool)
+        mask[idxs] = False
+        choices = choices[mask]
 
         X = torch.cat((X, X_t))
         Y = torch.cat((Y, Y_t))
 
-        S[N+t:N+t+q] = len(choices)
-        dT[N+t:N+t+q] = time()
+        if len(choices) == 0:
+            break
 
-        t += q
+        # dT[t+1] = time()
 
-    dT[:N] = 0
-    dT[N:] -= start
+    # dT[0] = 0
+    # dT[1:] -= start
 
-    return X, Y, S, dT
+    return X, Y, S#, dT
