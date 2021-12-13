@@ -66,7 +66,7 @@ def optimize(
 
     idxs = initialize(obj, N, choices, init_seed)
     X = choices[idxs]
-    Y = obj(X).reshape(-1, 1)
+    Y = obj(X).unsqueeze(1)
 
     mask = torch.ones(len(choices), dtype=bool)
     mask[idxs] = False
@@ -97,7 +97,7 @@ def optimize(
         
         _, idxs = torch.topk(A, q, dim=0, sorted=True)
         X_t = choices[idxs]
-        Y_t = obj(X_t).reshape(-1, 1)
+        Y_t = obj(X_t).unsqueeze(1)
 
         mask = torch.ones(len(choices), dtype=bool)
         mask[idxs] = False
