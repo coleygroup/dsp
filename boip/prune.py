@@ -3,9 +3,9 @@ from typing import Tuple
 import torch
 from torch import Tensor
 
-@torch.inference_mode()
 def prune(choices: Tensor, model, k, prob) -> Tuple[Tensor, Tensor]:
-    Y_hat = model.posterior(choices)
+    with torch.no_grad():
+        Y_hat = model.posterior(choices)
 
     return retained_idxs(Y_hat.mean, Y_hat.variance, k, prob)
     # threshold = torch.topk(Y_hat.mean, k, dim=0, sorted=True)[0][-1]

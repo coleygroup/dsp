@@ -1,10 +1,8 @@
-from timeit import default_timer as time
 from typing import Optional, Tuple
 
 from botorch.acquisition import UpperConfidenceBound
 from botorch.test_functions.base import BaseTestProblem
 from botorch.models import SingleTaskGP
-from botorch.optim import optimize_acqf_discrete
 from gpytorch.mlls import ExactMarginalLogLikelihood
 import numpy as np
 import torch
@@ -15,7 +13,6 @@ from tqdm import tqdm
 from boip.initialize import initialize
 from boip.prune import prune
 from boip.train import fit_model
-from boip.window import window_size
 
 def optimize(
     obj: BaseTestProblem,
@@ -58,20 +55,14 @@ def optimize(
     Returns
     -------
     X : Tensor
-        an `(N+T) x d` tensor of the acquired input points
+        a `q*(T+1) x d` tensor of the acquired input points
     Y : Tensor
-        an `(N+T) x 1` tensor of the associated objective values
+        a `q*(T+1) x 1` tensor of the associated objective values
     S : np.ndarray
-        an `(N+T)` length vector containing the size of the input space at each iteration
-    # dT : np.ndarray
-    #     an `(N+T)` length vector containing the time elapsed from the start of optimization at the
-    #     given iteration. The first N entries are always 0
+        a `(T+1)` length vector containing the size of the input space at each iteration
     """
     S = np.empty(T+1)
     S[0] = len(choices)
-
-    # dT = np.empty(N+T)
-    # start = time()
 
     idxs = initialize(obj, N, choices, init_seed)
     X = choices[idxs]
@@ -104,7 +95,7 @@ def optimize(
         acqf = UpperConfidenceBound(model, beta=2)
         A = acqf(torch.unsqueeze(choices, 1))
         
-        idxs = torch.topk(A, q, dim=0, sorted=True)[1]
+        _, idxs = torch.topk(A, q, dim=0, sorted=True)
         X_t = choices[idxs]
         Y_t = obj(X_t).reshape(-1, 1)
 
@@ -118,9 +109,4 @@ def optimize(
         if len(choices) == 0:
             break
 
-        # dT[t+1] = time()
-
-    # dT[0] = 0
-    # dT[1:] -= start
-
-    return X, Y, S#, dT
+    return X, Y, S
