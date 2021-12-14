@@ -8,6 +8,7 @@ from .discretize import discretize
 
 
 def build_objective(obj: str) -> SyntheticTestFunction:
+    obj_ = obj
     obj = obj.upper()
 
     if obj == "BEALE":
@@ -16,6 +17,8 @@ def build_objective(obj: str) -> SyntheticTestFunction:
         return test_functions.Branin(negate=True)
     if obj == "BUKIN":
         return test_functions.Bukin(negate=True)
+    if obj == "CAMEL":
+        return test_functions.SixHumpCamel(negate=True)
     if obj == "COSINE8":
         return test_functions.Cosine8(negate=True)
     if obj == "COSINES":
@@ -27,7 +30,7 @@ def build_objective(obj: str) -> SyntheticTestFunction:
     if obj == "LEVY":
         return test_functions.Levy(negate=True)
 
-    raise ValueError(f"Invalid objective. got: {obj}")
+    raise ValueError(f"Invalid objective. got: {obj_}")
 
 
 def valid_objectives() -> Set[str]:
