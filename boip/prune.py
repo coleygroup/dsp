@@ -2,10 +2,11 @@ from typing import Tuple
 
 import torch
 from torch import Tensor
+from botorch.models.model import Model
 
-def prune(choices: Tensor, model, k, prob) -> Tuple[Tensor, Tensor]:
+def prune(choices: Tensor, model: Model, k, prob) -> Tuple[Tensor, Tensor]:
     with torch.no_grad():
-        Y_hat = model.posterior(choices)
+        Y_hat = model(choices)
 
     return retained_idxs(Y_hat.mean, Y_hat.variance, k, prob)
     # threshold = torch.topk(Y_hat.mean, k, dim=0, sorted=True)[0][-1]
@@ -26,3 +27,7 @@ def prob_above(Y_mean: Tensor, Y_var: Tensor, threshold: Tensor) -> Tensor:
     threshold"""
     Z = (Y_mean - threshold) / Y_var.sqrt()
     return torch.distributions.normal.Normal(0, 1).cdf(Z)
+
+def thompson(Y_post, n: int):
+    Y_sample = Y_post.sample(torch.empty(n).shape)
+    return

@@ -38,6 +38,7 @@ def valid_objectives() -> Set[str]:
         "BEALE",
         "BRANIN",
         "BUKIN",
+        "CAMEL",
         "COSINE8",
         "COSINES",
         "DROP-WAVE",
