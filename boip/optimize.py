@@ -24,7 +24,7 @@ def optimize(
     k: int = 1,
     prob: float = 0.,
     verbose: bool = False,
-    init_seed: Optional[int] = None
+    init_seed: Optional[int] = None,
 ) -> Tuple[Tensor, Tensor]:
     """Optimize the input objective
 
@@ -37,7 +37,7 @@ def optimize(
     T : int
         the number of iterations to optimize over
     choices: Tensor
-        the discrete choices
+        an `n x d` tensor containing the choices over which to optimize
     q : int, default=1
         the number of points to take in each batch
     prune : bool, default=False
@@ -58,19 +58,27 @@ def optimize(
         a `q*(T+1) x d` tensor of the acquired input points
     Y : Tensor
         a `q*(T+1) x 1` tensor of the associated objective values
-    S : np.ndarray
-        a `(T+1)` length vector containing the size of the input space at each iteration
+    H : Tensor
+        an `n x 2` tensor containing the iteration at which each point was either acquired or 
+        pruned, where n is the number of choices in the pool. The 0th column indicates the
+        iteration at which the point was acquired and the 1st column indicates the iteration at
+        which the point was pruned. A value of -1 indicates that the point was neither acquired
+        or pruned, respectively. NOTE: points may only be acquired OR pruned, they may not be both.
     """
-    S = np.empty(T+1)
-    S[0] = len(choices)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    choices = choices.to(device)
 
-    idxs = initialize(obj, N, choices, init_seed)
-    X = choices[idxs]
+    acq_idxs = initialize(obj, N, choices, init_seed)
+    X = choices[acq_idxs]
     Y = obj(X).unsqueeze(1)
 
-    mask = torch.ones(len(choices), dtype=bool)
-    mask[idxs] = False
-    choices = choices[mask]
+    acq_mask = torch.zeros(len(choices)).bool()
+    acq_mask[acq_idxs] = True
+
+    prune_mask = torch.zeros(len(choices)).bool()
+    
+    H = torch.zeros((len(choices), 2)).long() - 1
+    H[acq_idxs, 0] = 0
 
     for t in tqdm(range(T), "Optimizing", disable=not verbose):
         model = SingleTaskGP(X, (Y - Y.mean(0)) / Y.std(0))
@@ -79,34 +87,34 @@ def optimize(
         fit_model(X, model, optim, mll, verbose=verbose)
 
         if prune_inputs:
-            idxs, E_opt = prune(choices, model, k, prob)
-            if len(idxs) == len(choices):
+            pruned_idxs, E_opt = prune(choices, model, k, prob, prune_mask + acq_mask)
+
+            prune_mask[pruned_idxs] = True
+            H[pruned_idxs, 1] = t
+
+            if len(pruned_idxs) == 0:
                 if verbose:
                     print("Did not prune pool!")
             else:
-                #NOTE(degraff): could implement something here about fast recovery
-                choices = choices[idxs]
                 if verbose:
-                    print(f"Pruned pool to {len(idxs)} choices!")
+                    print(f"Pruned {len(pruned_idxs)} choices!")
                     print(f"Expected optima pruned: {E_opt:0.3f}")
 
-        S[t+1] = len(choices) + q*(t+1)
-
         acqf = UpperConfidenceBound(model, beta=2)
-        A = acqf(torch.unsqueeze(choices, 1))
-        
-        _, idxs = torch.topk(A, q, dim=0, sorted=True)
-        X_t = choices[idxs]
+        A = acqf(choices.unsqueeze(1))
+        A[acq_mask + prune_mask] = -np.inf
+
+        _, acq_idxs = torch.topk(A, q, dim=0, sorted=True)
+        X_t = choices[acq_idxs]
         Y_t = obj(X_t).unsqueeze(1)
 
-        mask = torch.ones(len(choices), dtype=bool)
-        mask[idxs] = False
-        choices = choices[mask]
+        acq_mask[acq_idxs] = True
+        H[acq_idxs, 0] = t
 
         X = torch.cat((X, X_t))
         Y = torch.cat((Y, Y_t))
 
-        if len(choices) == 0:
+        if len(choices[acq_mask + prune_mask]) == 0:
             break
 
-    return X, Y, S
+    return X, Y, H
