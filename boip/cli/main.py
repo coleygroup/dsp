@@ -1,9 +1,7 @@
-import os
 from pathlib import Path
 from typing import List, Tuple
 
 import numpy as np
-# import ray
 from tqdm import tqdm
 
 import boip
@@ -14,7 +12,7 @@ def stack_results(results: List[Tuple]) -> Tuple[np.ndarray, np.ndarray, np.ndar
 
     X = np.stack([X.cpu().numpy() for X in Xs]).astype("f")
     Y = np.stack([Y.flatten().cpu().numpy() for Y in Ys]).astype("f")
-    H = np.stack(Hs).astype("i2")
+    H = np.stack([H.cpu().numpy() for H in Hs]).astype("i2")
 
     return X, Y, H
 
@@ -63,10 +61,15 @@ def main():
         boip.optimize(obj, args.N, args.T, choices, args.batch_size, True, args.N, args.prob)
         for _ in tqdm(range(args.repeats), 'pruning', unit='rep')
     ]
+    results_reacq = [
+        boip.optimize(obj, args.N, args.T, choices, args.batch_size, True, args.N, args.prob, no_reacquire=False)
+        for _ in tqdm(range(args.repeats), 'pruning', unit='rep')
+    ]
+
     Xs, Ys, Hs = zip(
-        *(stack_results(trials) for trials in [results_full, results_prune])
+        *(stack_results(trials) for trials in [results_full, results_prune, results_reacq])
     )
-    labels = ('FULL', 'PRUNE')
+    labels = ('FULL', 'PRUNE', "REACQUIRE")
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)

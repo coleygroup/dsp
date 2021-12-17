@@ -22,10 +22,10 @@ def optimize(
     q: int = 1,
     prune_inputs: bool = False,
     k: int = 1,
-    prob: float = 0.,
+    prob: float = 0.025,
     verbose: bool = False,
     init_seed: Optional[int] = None,
-    no_reacquire: bool = False
+    no_reacquire: bool = True
 ) -> Tuple[Tensor, Tensor]:
     """Optimize the input objective
 
