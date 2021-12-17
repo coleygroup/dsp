@@ -66,7 +66,6 @@ def main():
     Xs, Ys, Hs = zip(
         *(stack_results(trials) for trials in [results_full, results_prune])
     )
-
     labels = ('FULL', 'PRUNE')
 
     output_dir = Path(args.output_dir)

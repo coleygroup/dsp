@@ -25,6 +25,7 @@ def optimize(
     prob: float = 0.,
     verbose: bool = False,
     init_seed: Optional[int] = None,
+    no_reacquire: bool = False
 ) -> Tuple[Tensor, Tensor]:
     """Optimize the input objective
 
@@ -51,6 +52,8 @@ def optimize(
         whether to print
     init_seed: Optional[int] = None
         the seed with which to sample random initial points
+    no_reacquire : bool, default=True
+        whether points can be reacquired
 
     Returns
     -------
@@ -64,6 +67,8 @@ def optimize(
         iteration at which the point was acquired and the 1st column indicates the iteration at
         which the point was pruned. A value of -1 indicates that the point was neither acquired
         or pruned, respectively. NOTE: points may only be acquired OR pruned, they may not be both.
+        NOTE: if points are allowed to be reacquired, then the value in column 0 indicates the
+        latest iteration at which the point was acquired, as the previous value will be overwritten
     """
     device = "cuda" if torch.cuda.is_available() else "cpu"
     choices = choices.to(device)
@@ -80,7 +85,7 @@ def optimize(
     H = torch.zeros((len(choices), 2)).long() - 1
     H[acq_idxs, 0] = 0
 
-    for t in tqdm(range(T), "Optimizing", disable=not verbose):
+    for t in tqdm(range(1, T+1), "Optimizing", disable=not verbose):
         model = SingleTaskGP(X, (Y - Y.mean(0)) / Y.std(0))
         mll = ExactMarginalLogLikelihood(model.likelihood, model)
         optim = Adam(model.parameters(), lr=0.001)
@@ -102,7 +107,9 @@ def optimize(
 
         acqf = UpperConfidenceBound(model, beta=2)
         A = acqf(choices.unsqueeze(1))
-        A[acq_mask + prune_mask] = -np.inf
+        A[prune_mask] = -np.inf
+        if no_reacquire:
+            A[acq_mask] = -np.inf
 
         _, acq_idxs = torch.topk(A, q, dim=0, sorted=True)
         X_t = choices[acq_idxs]

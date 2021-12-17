@@ -26,7 +26,7 @@ setup(
     url="https://github.com/coleygroup/boip",
     platforms=["Linux", "Mac OS-X", "Unix"],
     python_requires=">=3.8",
-    version="0.0.1a",
+    version="alpha",
     entry_points = {
         'console_scripts': ['boip=boip.cli.main:main'],
     }
