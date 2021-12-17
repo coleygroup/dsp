@@ -77,12 +77,12 @@ def optimize(
     X = choices[acq_idxs]
     Y = obj(X).unsqueeze(1)
 
-    acq_mask = torch.zeros(len(choices)).bool()
+    acq_mask = torch.zeros(len(choices)).bool().to(device)
     acq_mask[acq_idxs] = True
 
-    prune_mask = torch.zeros(len(choices)).bool()
+    prune_mask = torch.zeros(len(choices)).bool().to(device)
     
-    H = torch.zeros((len(choices), 2)).long() - 1
+    H = torch.zeros((len(choices), 2)).long().to(device) - 1
     H[acq_idxs, 0] = 0
 
     for t in tqdm(range(1, T+1), "Optimizing", disable=not verbose):
@@ -97,13 +97,13 @@ def optimize(
             prune_mask[pruned_idxs] = True
             H[pruned_idxs, 1] = t
 
-            if len(pruned_idxs) == 0:
-                if verbose:
-                    print("Did not prune pool!")
-            else:
-                if verbose:
-                    print(f"Pruned {len(pruned_idxs)} choices!")
-                    print(f"Expected optima pruned: {E_opt:0.3f}")
+            # if len(pruned_idxs) == 0:
+            #     if verbose:
+            #         print("Did not prune pool!")
+            # else:
+            #     if verbose:
+            #         print(f"Pruned {len(pruned_idxs)} choices!")
+            #         print(f"Expected optima pruned: {E_opt:0.3f}")
 
         acqf = UpperConfidenceBound(model, beta=2)
         A = acqf(choices.unsqueeze(1))
