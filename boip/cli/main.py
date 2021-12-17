@@ -63,7 +63,7 @@ def main():
     ]
     results_reacq = [
         boip.optimize(obj, args.N, args.T, choices, args.batch_size, True, args.N, args.prob, no_reacquire=False)
-        for _ in tqdm(range(args.repeats), 'pruning', unit='rep')
+        for _ in tqdm(range(args.repeats), 'reacquisition', unit='rep')
     ]
 
     Xs, Ys, Hs = zip(
