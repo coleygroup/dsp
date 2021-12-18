@@ -15,7 +15,6 @@ dependencies:
   - pip:
     - matplotlib
     - numpy
-    - ray[default]
     - seaborn
     - scipy
     - sklearn

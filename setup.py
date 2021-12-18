@@ -29,5 +29,8 @@ setup(
     version="alpha",
     entry_points = {
         'console_scripts': ['boip=boip.cli.main:main'],
-    }
+    },
+    requires=[
+        "matplotlib", "numpy", "seaborn", "scipy", "sklearn", "tqdm"
+    ]
 )

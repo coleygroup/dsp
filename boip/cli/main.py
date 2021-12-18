@@ -70,7 +70,7 @@ def main():
 
     np.savez(output_dir / 'X.npz', **dict(zip(labels, Xs)))
     np.savez(output_dir / 'Y.npz', **dict(zip(labels, Ys)))
-    np.savez(output_dir / 'H.npz', **dict(zip(labels, Hs)))
+    np.savez_compressed(output_dir / 'H.npz', **dict(zip(labels, Hs)))
 
 if __name__ == '__main__':
     main()
