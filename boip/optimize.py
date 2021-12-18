@@ -23,9 +23,10 @@ def optimize(
     prune_inputs: bool = False,
     k: int = 1,
     prob: float = 0.025,
+    alpha: float = 1.0,
+    no_reacquire: bool = True,
     verbose: bool = False,
-    init_seed: Optional[int] = None,
-    no_reacquire: bool = True
+    init_seed: Optional[int] = None
 ) -> Tuple[Tensor, Tensor]:
     """Optimize the input objective
 
@@ -48,12 +49,14 @@ def optimize(
     prob : float, default=0.
         the mimimum probability a candidate point must have to improve upon the k-th best
         predicted mean in order to be retained
+    alpha : float, default=1.0
+        the amount by which to scale the uncertainties
+    no_reacquire : bool, default=True
+        whether points can be reacquired
     verbose : bool, default=False
         whether to print
     init_seed: Optional[int] = None
         the seed with which to sample random initial points
-    no_reacquire : bool, default=True
-        whether points can be reacquired
 
     Returns
     -------
@@ -92,7 +95,7 @@ def optimize(
         fit_model(X, model, optim, mll, verbose=verbose)
 
         if prune_inputs:
-            pruned_idxs, E_opt = prune(choices, model, k, prob, prune_mask + acq_mask)
+            pruned_idxs, E_opt = prune(choices, model, k, prob, prune_mask + acq_mask, alpha)
 
             prune_mask[pruned_idxs] = True
             H[pruned_idxs, 1] = t

@@ -4,7 +4,14 @@ import torch
 from torch import Tensor
 from botorch.models.model import Model
 
-def prune(choices: Tensor, model: Model, k, prob, mask) -> Tuple[Tensor, Tensor]:
+def prune(
+    choices: Tensor,
+    model: Model,
+    k: int,
+    prob: float,
+    mask: Tensor,
+    alpha: float = 1.,
+) -> Tuple[Tensor, Tensor]:
     """prune the possible choices based on current model's beliefs
 
     Parameters
@@ -19,6 +26,8 @@ def prune(choices: Tensor, model: Model, k, prob, mask) -> Tuple[Tensor, Tensor]
         the minimum probability of being a hit below which a point will be pruned
     mask : Tensor
         the choices in the pool that have already been pruned or acquired
+    alpha : float, default=1.
+        the amount by which to scale the uncertainty
 
     Returns
     -------
@@ -32,9 +41,9 @@ def prune(choices: Tensor, model: Model, k, prob, mask) -> Tuple[Tensor, Tensor]
     with torch.no_grad():
         Y_hat = model(choices)
 
-    return pruned_idxs_prob(Y_hat.mean, Y_hat.variance, k, prob, mask)
+    return pruned_idxs_prob(Y_hat.mean, alpha*Y_hat.variance, k, prob, mask, alpha)
 
-def pruned_idxs_prob(Y_mean, Y_var, k, prob, mask) -> Tuple[Tensor, Tensor]:
+def pruned_idxs_prob(Y_mean, Y_var, k, prob, mask, ) -> Tuple[Tensor, Tensor]:
     threshold = torch.topk(Y_mean, k, dim=0, sorted=True)[0][-1]
     P = prob_above(Y_mean, Y_var, threshold)
 

@@ -14,6 +14,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> Namespace:
     parser.add_argument('-ds', '--discretization-seed', type=int,
                         help='the random seed to use for discrete landscapes')
     parser.add_argument('-p', '--prob', type=float)
+    parser.add_argument('-a', '--alpha', type=float, default=1.0)
     parser.add_argument('--output-dir', help='the directory under which to save the outputs')
     parser.add_argument('--smoke-test', action="store_true")
 

@@ -40,7 +40,7 @@ def main():
         choices = boip.discretize(obj, 10000, 42)
         results = [
             boip.optimize(
-                obj, 10, 20, choices, 10, True, 10, 0.025, True
+                obj, 10, 20, choices, 10, True, 10, 0.025, verbose=True
             )
             for _ in tqdm(range(3), "smoke test")
         ]
@@ -58,11 +58,11 @@ def main():
         for _ in tqdm(range(args.repeats), 'full', unit='rep')
     ]
     results_prune = [
-        boip.optimize(obj, args.N, args.T, choices, args.batch_size, True, args.N, args.prob)
+        boip.optimize(obj, args.N, args.T, choices, args.batch_size, True, args.N, args.prob, args.alpha)
         for _ in tqdm(range(args.repeats), 'pruning', unit='rep')
     ]
     results_reacq = [
-        boip.optimize(obj, args.N, args.T, choices, args.batch_size, True, args.N, args.prob, no_reacquire=False)
+        boip.optimize(obj, args.N, args.T, choices, args.batch_size, True, args.N, args.prob, args.lpha, False)
         for _ in tqdm(range(args.repeats), 'reacquisition', unit='rep')
     ]
 
