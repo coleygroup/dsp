@@ -18,6 +18,4 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> Namespace:
     parser.add_argument('--output-dir', help='the directory under which to save the outputs')
     parser.add_argument('--smoke-test', action="store_true")
 
-    args = parser.parse_args(argv)
-
-    return args
+    return parser.parse_args(argv)

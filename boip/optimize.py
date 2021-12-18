@@ -69,7 +69,8 @@ def optimize(
         pruned, where n is the number of choices in the pool. The 0th column indicates the
         iteration at which the point was acquired and the 1st column indicates the iteration at
         which the point was pruned. A value of -1 indicates that the point was neither acquired
-        or pruned, respectively. NOTE: points may only be acquired OR pruned, they may not be both.
+        or pruned, respectively.
+        NOTE: points may only be acquired OR pruned, they may not be both.
         NOTE: if points are allowed to be reacquired, then the value in column 0 indicates the
         latest iteration at which the point was acquired, as the previous value will be overwritten
     """

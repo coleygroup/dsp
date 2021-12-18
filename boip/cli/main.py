@@ -18,23 +18,9 @@ def stack_results(results: List[Tuple]) -> Tuple[np.ndarray, np.ndarray, np.ndar
 
 def main():
     args = parse_args()
-
-    # try:
-    #     if "redis_password" in os.environ:
-    #         ray.init(
-    #             address=os.environ["ip_head"],
-    #             _node_ip_address=os.environ["ip_head"].split(":")[0],
-    #             _redis_password=os.environ["redis_password"],
-    #         )
-    #     else:
-    #         ray.init(address="auto")
-    # except ConnectionError:
-    #     ray.init()
-    # except PermissionError:
-    #     print("Failed to create a temporary directory for ray")
-    #     raise
-    # print(f"Connected to ray cluster with resources: {ray.cluster_resources()}")
-
+    for k, v in sorted(vars(args).items()):
+        print(f'{k}: {v}')
+    
     if args.smoke_test:
         obj = boip.build_objective("michalewicz")
         choices = boip.discretize(obj, 10000, 42)

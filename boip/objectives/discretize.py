@@ -2,7 +2,7 @@ from typing import Optional
 
 from botorch.test_functions.base import BaseTestProblem
 import torch
-from torch.functional import Tensor
+from torch import Tensor
 
 
 def discretize(obj: BaseTestProblem, N: int, seed: Optional[int] = None) -> Tensor:
@@ -21,7 +21,8 @@ def discretize(obj: BaseTestProblem, N: int, seed: Optional[int] = None) -> Tens
     Returns
     -------
     choices : Tensor
-        an `n x d` tensor containing the discrete choices
+        an `n x d` tensor containing the discrete choices, where `n` is the number of choices and
+        `d` is the dimension of the input domain
     """
     with torch.random.fork_rng(range(torch.cuda.device_count())):
         if seed is not None:
