@@ -40,16 +40,20 @@ def main():
     choices = boip.discretize(obj, args.num_choices, args.discretization_seed)
 
     results_full = [
-        boip.optimize(obj, args.N, args.T, choices, args.batch_size, False)
+        boip.optimize(obj, args.N, args.T, choices, args.batch_size, False, verbose=args.verbose)
         for _ in tqdm(range(args.repeats), 'full', unit='rep')
     ]
     results_prune = [
-        boip.optimize(obj, args.N, args.T, choices, args.batch_size, True, args.N, args.prob, args.alpha)
-        for _ in tqdm(range(args.repeats), 'pruning', unit='rep')
+        boip.optimize(
+            obj, args.N, args.T, choices, args.batch_size, True, args.N,
+            args.prob, args.alpha, True, args.verbose
+        ) for _ in tqdm(range(args.repeats), 'pruning', unit='rep')
     ]
     results_reacq = [
-        boip.optimize(obj, args.N, args.T, choices, args.batch_size, True, args.N, args.prob, args.lpha, False)
-        for _ in tqdm(range(args.repeats), 'reacquisition', unit='rep')
+        boip.optimize(
+            obj, args.N, args.T, choices, args.batch_size, True,
+            args.N, args.prob, args.lpha, False, args.verbose
+        ) for _ in tqdm(range(args.repeats), 'reacquisition', unit='rep')
     ]
 
     Xs, Ys, Hs = zip(

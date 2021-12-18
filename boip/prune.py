@@ -41,9 +41,9 @@ def prune(
     with torch.no_grad():
         Y_hat = model(choices)
 
-    return pruned_idxs_prob(Y_hat.mean, alpha*Y_hat.variance, k, prob, mask, alpha)
+    return pruned_idxs_prob(Y_hat.mean, alpha*Y_hat.variance, k, prob, mask)
 
-def pruned_idxs_prob(Y_mean, Y_var, k, prob, mask, ) -> Tuple[Tensor, Tensor]:
+def pruned_idxs_prob(Y_mean, Y_var, k, prob, mask) -> Tuple[Tensor, Tensor]:
     threshold = torch.topk(Y_mean, k, dim=0, sorted=True)[0][-1]
     P = prob_above(Y_mean, Y_var, threshold)
 

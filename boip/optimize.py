@@ -25,7 +25,7 @@ def optimize(
     prob: float = 0.025,
     alpha: float = 1.0,
     no_reacquire: bool = True,
-    verbose: bool = False,
+    verbose: int = 0,
     init_seed: Optional[int] = None
 ) -> Tuple[Tensor, Tensor]:
     """Optimize the input objective
@@ -53,8 +53,8 @@ def optimize(
         the amount by which to scale the uncertainties
     no_reacquire : bool, default=True
         whether points can be reacquired
-    verbose : bool, default=False
-        whether to print
+    verbose : int, default=0
+        the amount of information to print
     init_seed: Optional[int] = None
         the seed with which to sample random initial points
 
@@ -89,7 +89,7 @@ def optimize(
     H = torch.zeros((len(choices), 2)).long().to(device) - 1
     H[acq_idxs, 0] = 0
 
-    for t in tqdm(range(1, T+1), "Optimizing", disable=not verbose):
+    for t in tqdm(range(1, T+1), "Optimizing", disable=verbose < 1):
         model = SingleTaskGP(X, (Y - Y.mean(0)) / Y.std(0))
         mll = ExactMarginalLogLikelihood(model.likelihood, model)
         optim = Adam(model.parameters(), lr=0.001)

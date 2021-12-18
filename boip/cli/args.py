@@ -17,5 +17,6 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> Namespace:
     parser.add_argument('-a', '--alpha', type=float, default=1.0)
     parser.add_argument('--output-dir', help='the directory under which to save the outputs')
     parser.add_argument('--smoke-test', action="store_true")
+    parser.add_argument('-v', "--verbose", action="count", default=0)
 
     return parser.parse_args(argv)
