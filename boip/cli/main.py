@@ -2,17 +2,20 @@ from pathlib import Path
 from typing import List, Tuple
 
 import numpy as np
+from torch import Tensor
 from tqdm import tqdm
 
 import boip
 from boip.cli.args import parse_args
 
-def stack_results(results: List[Tuple]) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def collate_results(
+    results: List[Tuple[Tensor, Tensor, Tensor]]
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     Xs, Ys, Hs = zip(*results)
 
     X = np.stack([X.cpu().numpy() for X in Xs]).astype("f")
     Y = np.stack([Y.flatten().cpu().numpy() for Y in Ys]).astype("f")
-    H = np.stack([H.cpu().numpy() for H in Hs]).astype("i2")
+    H = np.stack([H.cpu().numpy() for H in Hs]).astype("i4")
 
     return X, Y, H
 
@@ -30,14 +33,41 @@ def main():
             )
             for _ in tqdm(range(3), "smoke test")
         ]
-        X, Y, H = stack_results(results)
+        X, Y, H = collate_results(results)
 
         Path("smoke-test").mkdir(parents=True, exist_ok=True)
         np.savez('smoke-test/out.npz', X=X, Y=Y, H=H)
         exit()
 
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    with open(output_dir / 'log.txt', 'w') as fid:
+        for k, v in sorted(vars(args).items()):
+            fid.write(f'{k}: {v}\n')
+
     obj = boip.build_objective(args.objective)
     choices = boip.discretize(obj, args.num_choices, args.discretization_seed)
+
+    if args.repeats is None or args.repeats <= 1:
+        full = boip.optimize(
+            obj, args.N, args.T, choices, args.batch_size, False, verbose=args.verbose
+        )
+        prune = boip.optimize(
+            obj, args.N, args.T, choices, args.batch_size, True,
+            args.N, args.prob, args.alpha, True, args.verbose
+        )
+        reacq = boip.optimize(
+            obj, args.N, args.T, choices, args.batch_size, True,
+            args.N, args.prob, args.alpha, False, args.verbose
+        )
+        labels = ("X", "Y", "H")
+
+        np.savez_compressed(output_dir / "full.npz", **dict(zip(labels, full)))
+        np.savez_compressed(output_dir / "prune.npz", **dict(zip(labels, prune)))
+        np.savez_compressed(output_dir / "reacq.npz", **dict(zip(labels, reacq)))
+
+        exit()
 
     results_full = [
         boip.optimize(obj, args.N, args.T, choices, args.batch_size, False, verbose=args.verbose)
@@ -57,16 +87,9 @@ def main():
     ]
 
     Xs, Ys, Hs = zip(
-        *(stack_results(trials) for trials in [results_full, results_prune, results_reacq])
+        *(collate_results(trials) for trials in [results_full, results_prune, results_reacq])
     )
     labels = ('FULL', 'PRUNE', "REACQUIRE")
-
-    output_dir = Path(args.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    with open(output_dir / 'log.txt', 'w') as fid:
-        for k, v in sorted(vars(args).items()):
-            fid.write(f'{k}: {v}\n')
 
     np.savez(output_dir / 'X.npz', **dict(zip(labels, Xs)))
     np.savez(output_dir / 'Y.npz', **dict(zip(labels, Ys)))
