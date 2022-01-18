@@ -96,7 +96,7 @@ def optimize(
         fit_model(X, model, optim, mll, verbose=verbose)
 
         if prune_inputs:
-            pruned_idxs, E_opt = prune(choices, model, k, prob, prune_mask + acq_mask, alpha)
+            pruned_idxs, _ = prune(choices, model, k, prob, prune_mask + acq_mask, alpha)
 
             prune_mask[pruned_idxs] = True
             H[pruned_idxs, 1] = t
@@ -125,7 +125,9 @@ def optimize(
         X = torch.cat((X, X_t))
         Y = torch.cat((Y, Y_t))
 
-        if len(choices[acq_mask + prune_mask]) == 0:
+        if no_reacquire and len(choices[~(acq_mask + prune_mask)]) == 0:
+            break
+        elif len(choices[~prune_mask]) == 0:
             break
 
     return X, Y, H
