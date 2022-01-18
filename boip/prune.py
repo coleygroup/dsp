@@ -43,7 +43,9 @@ def prune(
 
     return pruned_idxs_prob(Y_hat.mean, alpha*Y_hat.variance, k, prob, mask)
 
-def pruned_idxs_prob(Y_mean, Y_var, k, prob, mask) -> Tuple[Tensor, Tensor]:
+def pruned_idxs_prob(
+    Y_mean: Tensor, Y_var: Tensor, k: int, prob: float, mask: Tensor
+) -> Tuple[Tensor, Tensor]:
     threshold = torch.topk(Y_mean, k, dim=0, sorted=True)[0][-1]
     P = prob_above(Y_mean, Y_var, threshold)
 
@@ -59,7 +61,3 @@ def prob_above(Y_mean: Tensor, Y_var: Tensor, threshold: Tensor) -> Tensor:
     threshold"""
     Z = (Y_mean - threshold) / Y_var.sqrt()
     return torch.distributions.normal.Normal(0, 1).cdf(Z)
-
-def thompson(Y_post, n: int):
-    Y_sample = Y_post.sample(torch.empty(n).shape)
-    return

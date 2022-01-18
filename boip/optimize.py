@@ -27,7 +27,7 @@ def optimize(
     no_reacquire: bool = True,
     verbose: int = 0,
     init_seed: Optional[int] = None
-) -> Tuple[Tensor, Tensor]:
+) -> Tuple[Tensor, Tensor, Tensor]:
     """Optimize the input objective
 
     Parameters
