@@ -45,14 +45,14 @@ def main():
     ]
     results_prune = [
         boip.optimize(
-            obj, args.N, args.T, choices, args.batch_size, True, args.N,
-            args.prob, args.alpha, True, args.verbose
+            obj, args.N, args.T, choices, args.batch_size, True,
+            args.N, args.prob, args.alpha, True, args.verbose
         ) for _ in tqdm(range(args.repeats), 'pruning', unit='rep')
     ]
     results_reacq = [
         boip.optimize(
             obj, args.N, args.T, choices, args.batch_size, True,
-            args.N, args.prob, args.lpha, False, args.verbose
+            args.N, args.prob, args.alpha, False, args.verbose
         ) for _ in tqdm(range(args.repeats), 'reacquisition', unit='rep')
     ]
 

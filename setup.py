@@ -30,7 +30,5 @@ setup(
     entry_points = {
         'console_scripts': ['boip=boip.cli.main:main'],
     },
-    requires=[
-        "matplotlib", "numpy", "seaborn", "scipy", "sklearn", "tqdm"
-    ]
+    requires=["numpy", "tqdm"]
 )
