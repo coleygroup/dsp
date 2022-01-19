@@ -62,8 +62,6 @@ def main():
         # Y_reacq.append(reacq_npz["Y"])
         # H_reacq.append(reacq_npz["H"])
 
-        shutil.rmtree(p)
-
     X_full = np.array(X_full)
     Y_full = np.array(Y_full).squeeze(-1)
     H_full = np.array(H_full)
@@ -80,9 +78,10 @@ def main():
     save_arrays(args.parent_dir / 'Y.npz', Y_full, Y_prune, Y_reacq)
     save_arrays(args.parent_dir / 'H.npz', H_full, H_prune, H_reacq)
     
-    # np.savez_compressed(args.parent_dir / 'X.npz', FULL=X_full, PRUNE=X_prune, REACQ=X_reacq)
-    # np.savez_compressed(args.parent_dir / 'Y.npz', FULL=Y_full, PRUNE=Y_prune, REACQ=Y_reacq)
-    # np.savez_compressed(args.parent_dir / 'H.npz', FULL=H_full, PRUNE=H_prune, REACQ=H_reacq)
+    for p in tqdm(args.parent_dir.iterdir(), "Cleaning", unit="rep"):
+        if not p.is_dir():
+            continue
+        shutil.rmtree(p)
 
 if __name__ == "__main__":
     main()

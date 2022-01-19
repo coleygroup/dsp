@@ -85,7 +85,7 @@ python scripts/collate.py --parent-dir path/to/OBJECTIVE
 ```
 ## Figures
 
-See the [figures noteboook](figs.ipynb) for details
+See the [figures noteboook](notebooks/figs.ipynb) for details
 
 # Citation
 
