@@ -10,7 +10,8 @@ dependencies:
   - gpytorch
   - pip
   - python=3.8
-  - pytorch::pytorch+cpuonly
+  - pytorch::pytorch
+  - pytorch::cpuonly
   - pip:
     - numpy
     - pytest
