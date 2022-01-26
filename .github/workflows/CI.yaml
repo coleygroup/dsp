@@ -54,7 +54,14 @@ jobs:
       - name: run tests
         shell: bash -l {0}
         run: |
-          pytest -v --cov=pyscreener --cov-report=xml --color=yes
+          pytest -v --color=yes
+
+      # - name: CodeCov
+      #   uses: codecov/codecov-action@v1
+      #   with:
+      #     file: ./coverage.xml
+      #     flags: unittests
+      #     name: codecov-${{ matrix.os }}-py${{ matrix.python-version }}
 
   lint:
     name: lint with Black
@@ -69,14 +76,4 @@ jobs:
       - uses: psf/black@stable
         with:
           src: "./boip"
-      # - name: Setup Python ${{ matrix.python-version }}
-      #   uses: actions/setup-python@v2.3.1
-      #   with:
-      #     python-version: ${{ matrix.python-version }}
-
-    # - name: CodeCov
-    #   uses: codecov/codecov-action@v1
-    #   with:
-    #     file: ./coverage.xml
-    #     flags: unittests
-    #     name: codecov-${{ matrix.os }}-py${{ matrix.python-version }}
+          line-length: 100
