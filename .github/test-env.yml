@@ -1,0 +1,17 @@
+name: boip
+
+channels:
+  - conda-forge
+  - pytorch
+  - defaults
+
+dependencies:
+  - botorch::botorch
+  - gpytorch::gpytorch
+  - pip
+  - python=3.8
+  - pytorch::pytorch+cpuonly
+  - pip:
+    - numpy
+    - pytest
+    - tqdm

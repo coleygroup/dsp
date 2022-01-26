@@ -35,7 +35,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.python-version }}
-          environment-file: ./environment.yml
+          environment-file: ./.github/test-env.yml
           channels: conda-forge,defaults
           activate-environment: test
           auto-update-conda: false
@@ -46,7 +46,6 @@ jobs:
         shell: bash -l {0}
         run: |
           pip install . --no-deps
-          pip install pytest
           
       - name: conda list
         shell: bash -l {0}
@@ -57,6 +56,11 @@ jobs:
         run: |
           pytest -v --cov=pyscreener --cov-report=xml --color=yes
 
+  lint:
+    - name: Setup Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2.3.1
+      with:
+          python-version: ${{ matrix.python-version }}
     # - name: CodeCov
     #   uses: codecov/codecov-action@v1
     #   with:
