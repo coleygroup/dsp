@@ -6,8 +6,8 @@ channels:
   - defaults
 
 dependencies:
-  - botorch::botorch
-  - gpytorch::gpytorch
+  - botorch
+  - gpytorch
   - pip
   - python=3.8
   - pytorch::pytorch+cpuonly

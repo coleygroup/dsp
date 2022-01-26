@@ -65,10 +65,12 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2.3.1
-        with:
-          python-version: ${{ matrix.python-version }}
+      - uses: actions/checkout@v1
+      - uses: psf/black@stable
+      # - name: Setup Python ${{ matrix.python-version }}
+      #   uses: actions/setup-python@v2.3.1
+      #   with:
+      #     python-version: ${{ matrix.python-version }}
 
     # - name: CodeCov
     #   uses: codecov/codecov-action@v1
