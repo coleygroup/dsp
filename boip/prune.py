@@ -4,13 +4,9 @@ import torch
 from torch import Tensor
 from botorch.models.model import Model
 
+
 def prune(
-    choices: Tensor,
-    model: Model,
-    k: int,
-    prob: float,
-    mask: Tensor,
-    alpha: float = 1.,
+    choices: Tensor, model: Model, k: int, prob: float, mask: Tensor, alpha: float = 1.0
 ) -> Tuple[Tensor, Tensor]:
     """prune the possible choices based on current model's beliefs
 
@@ -41,7 +37,8 @@ def prune(
     with torch.no_grad():
         Y_hat = model(choices)
 
-    return pruned_idxs_prob(Y_hat.mean, alpha*Y_hat.variance, k, prob, mask)
+    return pruned_idxs_prob(Y_hat.mean, alpha * Y_hat.variance, k, prob, mask)
+
 
 def pruned_idxs_prob(
     Y_mean: Tensor, Y_var: Tensor, k: int, prob: float, mask: Tensor
@@ -56,8 +53,9 @@ def pruned_idxs_prob(
 
     return idxs[idxs_to_prune], P[idxs_to_prune].sum()
 
+
 def prob_above(Y_mean: Tensor, Y_var: Tensor, threshold: Tensor) -> Tensor:
-    """the probability that each prediction (given mean and uncertainty) is above the input 
+    """the probability that each prediction (given mean and uncertainty) is above the input
     threshold"""
     Z = (Y_mean - threshold) / Y_var.sqrt()
     return torch.distributions.normal.Normal(0, 1).cdf(Z)

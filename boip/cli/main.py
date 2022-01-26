@@ -8,6 +8,7 @@ from tqdm import tqdm
 import boip
 from boip.cli.args import parse_args
 
+
 def collate_results(
     results: List[Tuple[Tensor, Tensor, Tensor]]
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -19,32 +20,31 @@ def collate_results(
 
     return X, Y, H
 
+
 def main():
     args = parse_args()
     for k, v in sorted(vars(args).items()):
-        print(f'{k}: {v}')
-    
+        print(f"{k}: {v}")
+
     if args.smoke_test:
         obj = boip.build_objective("michalewicz")
         choices = boip.discretize(obj, 10000, 42)
         results = [
-            boip.optimize(
-                obj, 10, 20, choices, 10, True, 10, 0.025, verbose=True
-            )
+            boip.optimize(obj, 10, 20, choices, 10, True, 10, 0.025, verbose=True)
             for _ in tqdm(range(3), "smoke test")
         ]
         X, Y, H = collate_results(results)
 
         Path("smoke-test").mkdir(parents=True, exist_ok=True)
-        np.savez('smoke-test/out.npz', X=X, Y=Y, H=H)
+        np.savez("smoke-test/out.npz", X=X, Y=Y, H=H)
         exit()
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    with open(output_dir / 'log.txt', 'w') as fid:
+    with open(output_dir / "log.txt", "w") as fid:
         for k, v in sorted(vars(args).items()):
-            fid.write(f'{k}: {v}\n')
+            fid.write(f"{k}: {v}\n")
 
     obj = boip.build_objective(args.objective)
     choices = boip.discretize(obj, args.num_choices, args.discretization_seed)
@@ -54,12 +54,30 @@ def main():
             obj, args.N, args.T, choices, args.batch_size, False, verbose=args.verbose
         )
         prune = boip.optimize(
-            obj, args.N, args.T, choices, args.batch_size, True,
-            args.N, args.prob, args.alpha, True, args.verbose
+            obj,
+            args.N,
+            args.T,
+            choices,
+            args.batch_size,
+            True,
+            args.N,
+            args.prob,
+            args.alpha,
+            True,
+            args.verbose,
         )
         reacq = boip.optimize(
-            obj, args.N, args.T, choices, args.batch_size, True,
-            args.N, args.prob, args.alpha, False, args.verbose
+            obj,
+            args.N,
+            args.T,
+            choices,
+            args.batch_size,
+            True,
+            args.N,
+            args.prob,
+            args.alpha,
+            False,
+            args.verbose,
         )
         labels = ("X", "Y", "H")
 
@@ -71,29 +89,50 @@ def main():
 
     results_full = [
         boip.optimize(obj, args.N, args.T, choices, args.batch_size, False, verbose=args.verbose)
-        for _ in tqdm(range(args.repeats), 'full', unit='rep')
+        for _ in tqdm(range(args.repeats), "full", unit="rep")
     ]
     results_prune = [
         boip.optimize(
-            obj, args.N, args.T, choices, args.batch_size, True,
-            args.N, args.prob, args.alpha, True, args.verbose
-        ) for _ in tqdm(range(args.repeats), 'pruning', unit='rep')
+            obj,
+            args.N,
+            args.T,
+            choices,
+            args.batch_size,
+            True,
+            args.N,
+            args.prob,
+            args.alpha,
+            True,
+            args.verbose,
+        )
+        for _ in tqdm(range(args.repeats), "pruning", unit="rep")
     ]
     results_reacq = [
         boip.optimize(
-            obj, args.N, args.T, choices, args.batch_size, True,
-            args.N, args.prob, args.alpha, False, args.verbose
-        ) for _ in tqdm(range(args.repeats), 'reacquisition', unit='rep')
+            obj,
+            args.N,
+            args.T,
+            choices,
+            args.batch_size,
+            True,
+            args.N,
+            args.prob,
+            args.alpha,
+            False,
+            args.verbose,
+        )
+        for _ in tqdm(range(args.repeats), "reacquisition", unit="rep")
     ]
 
     Xs, Ys, Hs = zip(
         *(collate_results(trials) for trials in [results_full, results_prune, results_reacq])
     )
-    labels = ('FULL', 'PRUNE', "REACQUIRE")
+    labels = ("FULL", "PRUNE", "REACQUIRE")
 
-    np.savez(output_dir / 'X.npz', **dict(zip(labels, Xs)))
-    np.savez(output_dir / 'Y.npz', **dict(zip(labels, Ys)))
-    np.savez_compressed(output_dir / 'H.npz', **dict(zip(labels, Hs)))
+    np.savez(output_dir / "X.npz", **dict(zip(labels, Xs)))
+    np.savez(output_dir / "Y.npz", **dict(zip(labels, Ys)))
+    np.savez_compressed(output_dir / "H.npz", **dict(zip(labels, Hs)))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

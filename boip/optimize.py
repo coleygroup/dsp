@@ -14,6 +14,7 @@ from boip.initialize import initialize
 from boip.prune import prune
 from boip.train import fit_model
 
+
 def optimize(
     obj: BaseTestProblem,
     N: int,
@@ -26,7 +27,7 @@ def optimize(
     alpha: float = 1.0,
     no_reacquire: bool = True,
     verbose: int = 0,
-    init_seed: Optional[int] = None
+    init_seed: Optional[int] = None,
 ) -> Tuple[Tensor, Tensor, Tensor]:
     """Optimize the input objective
 
@@ -65,7 +66,7 @@ def optimize(
     Y : Tensor
         a `q*(T+1) x 1` tensor of the associated objective values
     H : Tensor
-        an `n x 2` tensor containing the iteration at which each point was either acquired or 
+        an `n x 2` tensor containing the iteration at which each point was either acquired or
         pruned, where n is the number of choices in the pool. The 0th column indicates the
         iteration at which the point was acquired and the 1st column indicates the iteration at
         which the point was pruned. A value of -1 indicates that the point was neither acquired
@@ -85,11 +86,11 @@ def optimize(
     acq_mask[acq_idxs] = True
 
     prune_mask = torch.zeros(len(choices)).bool().to(device)
-    
+
     H = torch.zeros((len(choices), 2)).long().to(device) - 1
     H[acq_idxs, 0] = 0
 
-    for t in tqdm(range(1, T+1), "Optimizing", disable=verbose < 1):
+    for t in tqdm(range(1, T + 1), "Optimizing", disable=verbose < 1):
         model = SingleTaskGP(X, (Y - Y.mean(0)) / Y.std(0))
         mll = ExactMarginalLogLikelihood(model.likelihood, model)
         optim = Adam(model.parameters(), lr=0.001)

@@ -5,6 +5,7 @@ from botorch.test_functions.synthetic import SyntheticTestFunction
 import torch
 from torch import Tensor
 
+
 class GSobol(SyntheticTestFunction):
     """Cosines test function"""
 
@@ -15,9 +16,9 @@ class GSobol(SyntheticTestFunction):
 
     def evaluate_true(self, X: Tensor) -> Tensor:
         return 1 - (self.g(X) - self.r(X)).sum(dim=1)
-    
+
     def g(self, X: Tensor) -> Tensor:
-        return (1.6*X - 0.5)**2
-    
+        return (1.6 * X - 0.5) ** 2
+
     def r(self, X: Tensor) -> Tensor:
-        return 0.3 * torch.cos(3*math.pi*(1.6*X - 0.5))
+        return 0.3 * torch.cos(3 * math.pi * (1.6 * X - 0.5))
