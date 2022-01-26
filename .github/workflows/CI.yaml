@@ -77,3 +77,4 @@ jobs:
         with:
           src: "./boip"
           line-length: 100
+          skip-magic-trailing-comma: True
