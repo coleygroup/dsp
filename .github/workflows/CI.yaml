@@ -65,16 +65,11 @@ jobs:
 
   lint:
     name: lint with Black
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: [3.8]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v1
       - uses: psf/black@stable
         with:
           src: "./boip"
-          line-length: 100
-          skip-magic-trailing-comma: True
+          options: "-l 100 -t py38 --skip-magic-trailing-comma"
