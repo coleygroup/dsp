@@ -75,14 +75,15 @@ If a value for `R` was provided, then the files will be inverted: there will be 
 
 Experiments for each objective were run like so:
 ```
-boip -o OBJECTIVE -c 10000 -ds 42 -N 10 -T 20 -q 10 -p 0.025
+boip -o OBJECTIVE -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025
 ```
-the `--output-dir` argument for each run was of the form `path/to/OBJECTIVE/rep-I`, where `I` is the number of the given repetition. 100 repititions were performed for each run.
+the `--output-dir` argument for each run was of the form `path/to/OBJECTIVE/rep-I`, where `I` is the number of the given repetition. 100 repititions were performed for each run (using SLURM to maintain sanity.)
 
 After each set of runs was complete, the runs were collated:
 ```
 python scripts/collate.py --parent-dir path/to/OBJECTIVE
 ```
+
 ## Figures
 
 See the [figures noteboook](notebooks/figs.ipynb) for details
