@@ -35,12 +35,12 @@ def test_pruned_idxs(Y_mean: torch.Tensor, Y_var, prob):
 def test_retain_all(Y_mean, Y_var_tiny):
     idxs, _ = pruned_idxs_prob(Y_mean, Y_var_tiny, 1, 0., torch.zeros(len(Y_mean), dtype=bool))
 
-    torch.testing.assert_equal(torch.arange(0), idxs)
+    torch.testing.assert_close(torch.arange(0), idxs, rtol=0, atol=0)
 
 def test_retain_none(Y_mean, Y_var_tiny):
     idxs, _ = pruned_idxs_prob(Y_mean, Y_var_tiny, 1, 1.01, torch.zeros(len(Y_mean), dtype=bool))
 
-    torch.testing.assert_equal(torch.arange(len(Y_mean)), idxs)
+    torch.testing.assert_close(torch.arange(len(Y_mean)), idxs, rtol=0, atol=0)
 
 @pytest.mark.parametrize(
     "threshold,expected_prob", [(-1, 1), (2, 0)]
@@ -48,4 +48,4 @@ def test_retain_none(Y_mean, Y_var_tiny):
 def test_prob_above_tiny_var(Y_mean, Y_var_tiny, threshold, expected_prob):
     P = prob_above(Y_mean, Y_var_tiny, threshold)
 
-    torch.testing.assert_allclose(P, expected_prob * torch.ones_like(P))
+    torch.testing.assert_close(P, expected_prob * torch.ones_like(P))
