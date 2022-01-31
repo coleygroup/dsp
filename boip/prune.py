@@ -58,4 +58,4 @@ def prob_above(Y_mean: Tensor, Y_var: Tensor, threshold: Tensor) -> Tensor:
     """the probability that each prediction (given mean and uncertainty) is above the input
     threshold"""
     Z = (Y_mean - threshold) / Y_var.sqrt()
-    return torch.distributions.normal.Normal(0, 1).cdf(Z)
+    return torch.distributions.normal.Normal(0, 1).cdf(Z).sum(1)

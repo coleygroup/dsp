@@ -27,20 +27,20 @@ def test_pruned_idxs(Y_mean: torch.Tensor, Y_var, prob):
     threshold = torch.topk(Y_mean, 1, dim=0, sorted=True)[0][-1]
     P = prob_above(Y_mean, Y_var, threshold)
 
-    idxs, E = pruned_idxs_prob(Y_mean, Y_var, 1, prob, torch.ones(Y_mean.shape, dtype=bool))
+    idxs, E = pruned_idxs_prob(Y_mean, Y_var, 1, prob, torch.zeros(len(Y_mean), dtype=bool))
 
     assert (P[idxs] < prob).all()
-    torch.testing.assert_close(P[P >= prob].sum(), E)
+    torch.testing.assert_close(P[P < prob].sum(), E)
 
 def test_retain_all(Y_mean, Y_var_tiny):
-    idxs, _ = pruned_idxs_prob(Y_mean, Y_var_tiny, 1, 0., torch.ones(Y_mean.shape, dtype=bool))
+    idxs, _ = pruned_idxs_prob(Y_mean, Y_var_tiny, 1, 0., torch.zeros(len(Y_mean), dtype=bool))
 
     torch.testing.assert_equal(torch.arange(0), idxs)
 
 def test_retain_none(Y_mean, Y_var_tiny):
-    idxs, _ = pruned_idxs_prob(Y_mean, Y_var_tiny, 1, 1.01, torch.ones(Y_mean.shape, dtype=bool))
+    idxs, _ = pruned_idxs_prob(Y_mean, Y_var_tiny, 1, 1.01, torch.zeros(len(Y_mean), dtype=bool))
 
-    torch.testing.assert_equal(torch.arange(Y_mean.shape), idxs)
+    torch.testing.assert_equal(torch.arange(len(Y_mean)), idxs)
 
 @pytest.mark.parametrize(
     "threshold,expected_prob", [(-1, 1), (2, 0)]
