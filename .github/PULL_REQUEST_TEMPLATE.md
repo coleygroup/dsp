@@ -1,12 +1,17 @@
 ## Description
 Provide a brief description of the PR's purpose here.
 
-## Todos
+## Goals
 Notable points that this PR has either accomplished or will accomplish.
-- [ ] TODO 1
+- goal 1
 
-## Questions
-- [ ] Question1
+## Questions/Considerations
+- Q1
+
+## TODO
+- [ ] linting
+- [ ] added new unit tests?
+- [ ] passed unit tests?
 
 ## Status
 - [ ] Ready to go
