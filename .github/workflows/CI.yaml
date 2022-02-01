@@ -30,7 +30,6 @@ jobs:
           df -h
           ulimit -a
 
-      # - uses: ./.github/actions/unit-tests.yaml
       - name: setup conda
         uses: conda-incubator/setup-miniconda@v2
         with:
@@ -55,10 +54,3 @@ jobs:
         shell: bash -l {0}
         run: |
           pytest -v --color=yes
-
-      # - name: CodeCov
-      #   uses: codecov/codecov-action@v1
-      #   with:
-      #     file: ./coverage.xml
-      #     flags: unittests
-      #     name: codecov-${{ matrix.os }}-py${{ matrix.python-version }}

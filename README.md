@@ -1,3 +1,7 @@
+[//]: # (Badges)
+[![CI](https://github.com/davidegraff/boip/actions/workflows/CI.yaml/badge.svg)](https://github.com/davidegraff/boip/actions/workflows/CI.yaml)
+
+
 # boip
 **B**ayesian **O**ptimization with **I**nput space **P**runing
 
