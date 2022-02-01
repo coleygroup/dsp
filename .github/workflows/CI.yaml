@@ -62,14 +62,3 @@ jobs:
       #     file: ./coverage.xml
       #     flags: unittests
       #     name: codecov-${{ matrix.os }}-py${{ matrix.python-version }}
-
-  lint:
-    name: lint with Black
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v1
-      - uses: psf/black@stable
-        with:
-          src: "./boip"
-          options: "-l 100 -t py38 --skip-magic-trailing-comma"
