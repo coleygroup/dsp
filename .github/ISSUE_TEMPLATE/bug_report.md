@@ -25,6 +25,12 @@ Steps to reproduce the behavior:
 - package versions
 - OS
 
+**Checks**
+
+- [ ] all dependencies are satisifed: `conda list` shows the packages listed in the `README`
+- [ ] the unit tests are working: `pytest -v` reports no errors
+- [ ] the integration tests are working: `boip --smoke-test` completes with no problems
+
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
