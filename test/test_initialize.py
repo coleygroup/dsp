@@ -1,37 +1,63 @@
 import pytest
 import torch
 
-from boip.initialize import initialize
+from boip.initialize import InitMode, initialize
 
-@pytest.fixture(params=[1000, 5000, 10000])
+
+@pytest.fixture(params=[100, 500, 1000])
 def n(request):
     return request.param
+
 
 @pytest.fixture(params=[2, 4, 8])
 def d(request):
     return request.param
 
+
 @pytest.fixture
 def choices(n, d):
     return torch.rand((n, d))
 
-@pytest.fixture(params=[10, 50, 100, 200])
+
+@pytest.fixture(params=[10, 20, 50])
 def m(request):
     return request.param
+
 
 @pytest.fixture(params=[0, 14, 42])
 def seed(request):
     return request.param
 
-@pytest.mark.parametrize('_', range(3))
-def test_initialize_no_seed(choices, m, _):
-    X1 = initialize(None, m, choices, None)
-    X2 = initialize(None, m, choices, None)
 
-    assert not torch.equal(X1, X2)
+def test_inavlid_init_mode():
+    with pytest.raises(ValueError):
+        initialize(0, [], None, "foo")
 
-def test_initialize_seeded(choices, m, seed):
-    X1 = initialize(None, m, choices, seed)
-    X2 = initialize(None, m, choices, seed)
 
-    assert torch.equal(X1, X2)
+@pytest.mark.parametrize("_", range(3))
+def test_init_uniform_no_seed(choices, m, _):
+    I = initialize(m, choices, None, InitMode.UNIFORM)
+    J = initialize(m, choices, None, InitMode.UNIFORM)
+
+    assert not torch.equal(I, J)
+
+
+def test_init_uniform_seeded(choices, m, seed):
+    I = initialize(m, choices, seed, InitMode.UNIFORM)
+    J = initialize(m, choices, seed, InitMode.UNIFORM)
+
+    assert torch.equal(I, J)
+
+
+@pytest.mark.parametrize("_", range(3))
+def test_init_LHC_no_seed(choices, m, _):
+    I = initialize(m, choices, None, InitMode.LHC)
+    J = initialize(m, choices, None, InitMode.LHC)
+
+    assert not torch.equal(I, J)
+
+def test_init_LHC_seeded(choices, m, seed):
+    I = initialize(m, choices, seed, InitMode.LHC)
+    J = initialize(m, choices, seed, InitMode.LHC)
+
+    assert torch.equal(I, J)

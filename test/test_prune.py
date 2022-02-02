@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from boip.prune import retained_idxs, prob_above
+from boip.prune import pruned_idxs_prob, prob_above
 
 @pytest.fixture(params=[100*i+1 for i in range(4)])
 def N(request):
@@ -23,24 +23,26 @@ def Y_var_tiny(Y_mean):
 def prob(request):
     return torch.tensor(request.param) 
 
-def test_retained_idxs(Y_mean, Y_var, prob):
+def test_pruned_idxs(Y_mean: torch.Tensor, Y_var, prob):
     threshold = torch.topk(Y_mean, 1, dim=0, sorted=True)[0][-1]
     P = prob_above(Y_mean, Y_var, threshold)
 
-    idxs, E = retained_idxs(Y_mean, Y_var, 1, prob)
+    idxs, E = pruned_idxs_prob(Y_mean, Y_var, threshold, prob, torch.zeros(len(Y_mean), dtype=bool))
 
-    assert (P[idxs] >= prob).all()
-    torch.testing.assert_close(P[P<prob].sum(), E)
+    assert (P[idxs] < prob).all()
+    torch.testing.assert_close(P[P < prob].sum(), E)
 
 def test_retain_all(Y_mean, Y_var_tiny):
-    idxs, _ = retained_idxs(Y_mean, Y_var_tiny, 1, 0.)
+    threshold = torch.topk(Y_mean, 1, dim=0, sorted=True)[0][-1]
+    idxs, _ = pruned_idxs_prob(Y_mean, Y_var_tiny, threshold, 0., torch.zeros(len(Y_mean), dtype=bool))
 
-    torch.testing.assert_equal(torch.arange(len(Y_mean)), idxs)
+    torch.testing.assert_close(torch.arange(0), idxs, rtol=0, atol=0)
 
 def test_retain_none(Y_mean, Y_var_tiny):
-    idxs, _ = retained_idxs(Y_mean, Y_var_tiny, 1, 1.01)
+    threshold = torch.topk(Y_mean, 1, dim=0, sorted=True)[0][-1]
+    idxs, _ = pruned_idxs_prob(Y_mean, Y_var_tiny, threshold, 1.01, torch.zeros(len(Y_mean), dtype=bool))
 
-    torch.testing.assert_equal(torch.arange(0), idxs)
+    torch.testing.assert_close(torch.arange(len(Y_mean)), idxs, rtol=0, atol=0)
 
 @pytest.mark.parametrize(
     "threshold,expected_prob", [(-1, 1), (2, 0)]
@@ -48,4 +50,4 @@ def test_retain_none(Y_mean, Y_var_tiny):
 def test_prob_above_tiny_var(Y_mean, Y_var_tiny, threshold, expected_prob):
     P = prob_above(Y_mean, Y_var_tiny, threshold)
 
-    torch.testing.assert_allclose(P, expected_prob * torch.ones_like(P))
+    torch.testing.assert_close(P, expected_prob * torch.ones_like(P))

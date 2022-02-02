@@ -8,6 +8,7 @@ from tqdm import tqdm
 import boip
 from boip.cli.args import parse_args
 
+
 def collate_results(
     results: List[Tuple[Tensor, Tensor, Tensor]]
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -19,6 +20,7 @@ def collate_results(
 
     return X, Y, H
 
+
 def main():
     args = parse_args()
     for k, v in sorted(vars(args).items()):
@@ -29,9 +31,7 @@ def main():
         obj = boip.build_objective("michalewicz")
         choices = boip.discretize(obj, 10000, 42)
         results = [
-            boip.optimize(
-                obj, 10, 20, choices, 10, True, 10, 0.025, verbose=True
-            )
+            boip.optimize(obj, 10, 20, choices, 10, True, 10, 0.025, verbose=True)
             for _ in tqdm(range(3), "smoke test")
         ]
         X, Y, H = collate_results(results)
@@ -43,52 +43,99 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    with open(output_dir / 'log.txt', 'w') as fid:
+    with open(output_dir / "log.txt", "w") as fid:
         for k, v in sorted(vars(args).items()):
-            fid.write(f'{k}: {v}\n')
+            fid.write(f"{k}: {v}\n")
 
     obj = boip.build_objective(args.objective)
     choices = boip.discretize(obj, args.num_choices, args.discretization_seed)
 
     if args.repeats is None or args.repeats <= 1:
         full = boip.optimize(
-            obj, args.N, args.T, choices, args.batch_size, False, verbose=args.verbose
+            obj,
+            args.N,
+            args.T,
+            choices,
+            args.batch_size,
+            False,
+            init_mode=args.init_mode,
+            verbose=args.verbose,
         )
         prune = boip.optimize(
-            obj, args.N, args.T, choices, args.batch_size, True,
-            args.N, args.prob, args.alpha, True, args.verbose
+            obj,
+            args.N,
+            args.T,
+            choices,
+            args.batch_size,
+            True,
+            args.k_or_threshold,
+            args.prob,
+            args.gamma,
+            init_mode=args.init_mode,
+            verbose=args.verbose,
         )
-        reacq = boip.optimize(
-            obj, args.N, args.T, choices, args.batch_size, True,
-            args.N, args.prob, args.alpha, False, args.verbose
-        )
+        # reacq = boip.optimize(
+        #     obj,
+        #     args.N,
+        #     args.T,
+        #     choices,
+        #     args.batch_size,
+        #     True,
+        #     args.N,
+        #     args.prob,
+        #     args.alpha,
+        #     False,
+        #     verbose=args.verbose,
+        # )
+        labels = ("X", "Y", "H")
 
-        keys = ("X", "Y", "H")
-        np.savez_compressed(output_dir / "full.npz", **dict(zip(keys, full)))
-        np.savez_compressed(output_dir / "prune.npz", **dict(zip(keys, prune)))
-        np.savez_compressed(output_dir / "reacq.npz", **dict(zip(keys, reacq)))
+        np.savez_compressed(output_dir / "full.npz", **dict(zip(labels, full)))
+        np.savez_compressed(output_dir / "prune.npz", **dict(zip(labels, prune)))
+        # np.savez_compressed(output_dir / "reacq.npz", **dict(zip(labels, reacq)))
 
         exit()
 
     results_full = [
-        boip.optimize(obj, args.N, args.T, choices, args.batch_size, False, verbose=args.verbose)
-        for _ in tqdm(range(args.repeats), 'full', unit='rep')
+        boip.optimize(
+            obj, args.N, args.T, choices, args.batch_size, False, verbose=args.verbose
+        )
+        for _ in tqdm(range(args.repeats), "full", unit="rep")
     ]
     results_prune = [
         boip.optimize(
-            obj, args.N, args.T, choices, args.batch_size, True,
-            args.N, args.prob, args.alpha, True, args.verbose
-        ) for _ in tqdm(range(args.repeats), 'pruning', unit='rep')
+            obj,
+            args.N,
+            args.T,
+            choices,
+            args.batch_size,
+            True,
+            args.k_or_threshold,
+            args.prob,
+            args.gamma,
+            True,
+            args.verbose,
+        )
+        for _ in tqdm(range(args.repeats), "pruning", unit="rep")
     ]
-    results_reacq = [
-        boip.optimize(
-            obj, args.N, args.T, choices, args.batch_size, True,
-            args.N, args.prob, args.alpha, False, args.verbose
-        ) for _ in tqdm(range(args.repeats), 'reacquisition', unit='rep')
-    ]
+    # results_reacq = [
+    #     boip.optimize(
+    #         obj,
+    #         args.N,
+    #         args.T,
+    #         choices,
+    #         args.batch_size,
+    #         True,
+    #         args.N,
+    #         args.prob,
+    #         args.alpha,
+    #         False,
+    #         args.verbose,
+    #     )
+    #     for _ in tqdm(range(args.repeats), "reacquisition", unit="rep")
+    # ]
 
     Xs, Ys, Hs = zip(
-        *(collate_results(trials) for trials in [results_full, results_prune, results_reacq])
+        *(collate_results(trials) for trials in [results_full, results_prune])
     )
     keys = ('FULL', 'PRUNE', "REACQUIRE")
 
@@ -96,5 +143,5 @@ def main():
     np.savez(output_dir / 'Y.npz', **dict(zip(keys, Ys)))
     np.savez_compressed(output_dir / 'H.npz', **dict(zip(keys, Hs)))
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
