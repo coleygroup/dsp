@@ -23,7 +23,8 @@ def main():
     args = parse_args()
     for k, v in sorted(vars(args).items()):
         print(f'{k}: {v}')
-    
+    print()
+
     if args.smoke_test:
         obj = boip.build_objective("michalewicz")
         choices = boip.discretize(obj, 10000, 42)
@@ -36,7 +37,7 @@ def main():
         X, Y, H = collate_results(results)
 
         Path("smoke-test").mkdir(parents=True, exist_ok=True)
-        np.savez('smoke-test/out.npz', X=X, Y=Y, H=H)
+        np.savez("smoke-test/out.npz", X=X, Y=Y, H=H)
         exit()
 
     output_dir = Path(args.output_dir)
@@ -61,11 +62,11 @@ def main():
             obj, args.N, args.T, choices, args.batch_size, True,
             args.N, args.prob, args.alpha, False, args.verbose
         )
-        labels = ("X", "Y", "H")
 
-        np.savez_compressed(output_dir / "full.npz", **dict(zip(labels, full)))
-        np.savez_compressed(output_dir / "prune.npz", **dict(zip(labels, prune)))
-        np.savez_compressed(output_dir / "reacq.npz", **dict(zip(labels, reacq)))
+        keys = ("X", "Y", "H")
+        np.savez_compressed(output_dir / "full.npz", **dict(zip(keys, full)))
+        np.savez_compressed(output_dir / "prune.npz", **dict(zip(keys, prune)))
+        np.savez_compressed(output_dir / "reacq.npz", **dict(zip(keys, reacq)))
 
         exit()
 
@@ -89,11 +90,11 @@ def main():
     Xs, Ys, Hs = zip(
         *(collate_results(trials) for trials in [results_full, results_prune, results_reacq])
     )
-    labels = ('FULL', 'PRUNE', "REACQUIRE")
+    keys = ('FULL', 'PRUNE', "REACQUIRE")
 
-    np.savez(output_dir / 'X.npz', **dict(zip(labels, Xs)))
-    np.savez(output_dir / 'Y.npz', **dict(zip(labels, Ys)))
-    np.savez_compressed(output_dir / 'H.npz', **dict(zip(labels, Hs)))
+    np.savez(output_dir / 'X.npz', **dict(zip(keys, Xs)))
+    np.savez(output_dir / 'Y.npz', **dict(zip(keys, Ys)))
+    np.savez_compressed(output_dir / 'H.npz', **dict(zip(keys, Hs)))
 
 if __name__ == '__main__':
     main()
