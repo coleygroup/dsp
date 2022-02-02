@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 from botorch.acquisition import UpperConfidenceBound
 from botorch.test_functions.base import BaseTestProblem
@@ -22,13 +22,13 @@ def optimize(
     choices: Tensor,
     q: int = 1,
     prune_inputs: bool = False,
-    k: int = 1,
+    k_or_threshold: Union[int, float] = 1,
     prob: float = 0.025,
-    alpha: float = 1.0,
+    gamma: float = 1.0,
     no_reacquire: bool = True,
-    verbose: int = 0,
     init_seed: Optional[int] = None,
-    init_mode: InitMode = InitMode.UNIFORM
+    init_mode: InitMode = InitMode.UNIFORM,
+    verbose: int = 0,
 ) -> Tuple[Tensor, Tensor, Tensor]:
     """Optimize the input objective
 
@@ -51,17 +51,17 @@ def optimize(
     prob : float, default=0.
         the mimimum probability a candidate point must have to improve upon the k-th best
         predicted mean in order to be retained
-    alpha : float, default=1.0
-        the amount by which to scale the uncertainties
+    gamma : float, default=1.0
+        the amount by which to scale the predicted variances for pruning
     no_reacquire : bool, default=True
         whether points can be reacquired
-    verbose : int, default=0
-        the amount of information to print
     init_seed: Optional[int] = None
         the seed with which to sample random initial points
     init_mode: InitMode = InitMode.UNIFORM
         the method by which to select initial points. See `boip.initalize.initialize` for more
         details
+    verbose : int, default=0
+        the amount of information to print
 
     Returns
     -------
@@ -101,7 +101,9 @@ def optimize(
         fit_model(X, model, optim, mll, verbose=verbose)
 
         if prune_inputs:
-            pruned_idxs, _ = prune(choices, model, k, prob, prune_mask + acq_mask, alpha)
+            pruned_idxs, _ = prune(
+                choices, model, k_or_threshold, prob, prune_mask + acq_mask, gamma
+            )
 
             prune_mask[pruned_idxs] = True
             H[pruned_idxs, 1] = t

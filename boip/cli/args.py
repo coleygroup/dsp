@@ -3,6 +3,14 @@ from typing import Optional, Sequence
 
 from boip.initialize import InitMode
 
+def int_or_float(arg: str):
+    try:
+        value = int(arg)
+    except ValueError:
+        value = float(arg)
+    
+    return value
+
 def parse_args(argv: Optional[Sequence[str]] = None) -> Namespace:
     parser = ArgumentParser()
 
@@ -33,10 +41,15 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> Namespace:
         help="the random seed to use for discrete landscapes",
     )
     parser.add_argument("-p", "--prob", type=float)
-    parser.add_argument("-a", "--alpha", type=float, default=1.0)
+    parser.add_argument("--k-or-threshold", type=int_or_float)
+    parser.add_argument("-g", "--gamma", type=float, default=1.0)
     parser.add_argument("--output-dir", help="the directory under which to save the outputs")
     parser.add_argument("--smoke-test", action="store_true")
     parser.add_argument("--init-mode", type=InitMode.from_str, default=InitMode.UNIFORM)
     parser.add_argument("-v", "--verbose", action="count", default=0)
 
-    return parser.parse_args(argv)
+    args =  parser.parse_args(argv)
+
+    args.k_or_threshold = args.k_or_threshold or args.N
+    
+    return args

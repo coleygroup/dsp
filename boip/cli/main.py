@@ -51,7 +51,14 @@ def main():
 
     if args.repeats is None or args.repeats <= 1:
         full = boip.optimize(
-            obj, args.N, args.T, choices, args.batch_size, False, verbose=args.verbose
+            obj,
+            args.N,
+            args.T,
+            choices,
+            args.batch_size,
+            False,
+            init_mode=args.init_mode,
+            verbose=args.verbose,
         )
         prune = boip.optimize(
             obj,
@@ -60,35 +67,37 @@ def main():
             choices,
             args.batch_size,
             True,
-            args.N,
+            args.k_or_threshold,
             args.prob,
-            args.alpha,
-            True,
-            args.verbose,
+            args.gamma,
+            init_mode=args.init_mode,
+            verbose=args.verbose,
         )
-        reacq = boip.optimize(
-            obj,
-            args.N,
-            args.T,
-            choices,
-            args.batch_size,
-            True,
-            args.N,
-            args.prob,
-            args.alpha,
-            False,
-            args.verbose,
-        )
+        # reacq = boip.optimize(
+        #     obj,
+        #     args.N,
+        #     args.T,
+        #     choices,
+        #     args.batch_size,
+        #     True,
+        #     args.N,
+        #     args.prob,
+        #     args.alpha,
+        #     False,
+        #     verbose=args.verbose,
+        # )
         labels = ("X", "Y", "H")
 
         np.savez_compressed(output_dir / "full.npz", **dict(zip(labels, full)))
         np.savez_compressed(output_dir / "prune.npz", **dict(zip(labels, prune)))
-        np.savez_compressed(output_dir / "reacq.npz", **dict(zip(labels, reacq)))
+        # np.savez_compressed(output_dir / "reacq.npz", **dict(zip(labels, reacq)))
 
         exit()
 
     results_full = [
-        boip.optimize(obj, args.N, args.T, choices, args.batch_size, False, verbose=args.verbose)
+        boip.optimize(
+            obj, args.N, args.T, choices, args.batch_size, False, verbose=args.verbose
+        )
         for _ in tqdm(range(args.repeats), "full", unit="rep")
     ]
     results_prune = [
@@ -99,35 +108,35 @@ def main():
             choices,
             args.batch_size,
             True,
-            args.N,
+            args.k_or_threshold,
             args.prob,
-            args.alpha,
+            args.gamma,
             True,
             args.verbose,
         )
         for _ in tqdm(range(args.repeats), "pruning", unit="rep")
     ]
-    results_reacq = [
-        boip.optimize(
-            obj,
-            args.N,
-            args.T,
-            choices,
-            args.batch_size,
-            True,
-            args.N,
-            args.prob,
-            args.alpha,
-            False,
-            args.verbose,
-        )
-        for _ in tqdm(range(args.repeats), "reacquisition", unit="rep")
-    ]
+    # results_reacq = [
+    #     boip.optimize(
+    #         obj,
+    #         args.N,
+    #         args.T,
+    #         choices,
+    #         args.batch_size,
+    #         True,
+    #         args.N,
+    #         args.prob,
+    #         args.alpha,
+    #         False,
+    #         args.verbose,
+    #     )
+    #     for _ in tqdm(range(args.repeats), "reacquisition", unit="rep")
+    # ]
 
     Xs, Ys, Hs = zip(
-        *(collate_results(trials) for trials in [results_full, results_prune, results_reacq])
+        *(collate_results(trials) for trials in [results_full, results_prune])
     )
-    labels = ("FULL", "PRUNE", "REACQUIRE")
+    labels = ("FULL", "PRUNE")
 
     np.savez(output_dir / "X.npz", **dict(zip(labels, Xs)))
     np.savez(output_dir / "Y.npz", **dict(zip(labels, Ys)))

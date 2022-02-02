@@ -5,10 +5,12 @@ from scipy.stats import qmc
 import torch
 from torch import Tensor
 
-from enum import Enum, auto
+from enum import auto
 
 
-class InitMode(Enum):
+from boip.utils import AutoName
+
+class InitMode(AutoName):
     LHC = auto()
     UNIFORM = auto()
 
