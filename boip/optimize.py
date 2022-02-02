@@ -10,7 +10,7 @@ from torch import Tensor
 from torch.optim import Adam
 from tqdm import tqdm
 
-from boip.initialize import initialize
+from boip.initialize import InitMode, initialize
 from boip.prune import prune
 from boip.train import fit_model
 
@@ -28,6 +28,7 @@ def optimize(
     no_reacquire: bool = True,
     verbose: int = 0,
     init_seed: Optional[int] = None,
+    init_mode: InitMode = InitMode.UNIFORM
 ) -> Tuple[Tensor, Tensor, Tensor]:
     """Optimize the input objective
 
@@ -58,6 +59,9 @@ def optimize(
         the amount of information to print
     init_seed: Optional[int] = None
         the seed with which to sample random initial points
+    init_mode: InitMode = InitMode.UNIFORM
+        the method by which to select initial points. See `boip.initalize.initialize` for more
+        details
 
     Returns
     -------
@@ -78,7 +82,7 @@ def optimize(
     device = "cuda" if torch.cuda.is_available() else "cpu"
     choices = choices.to(device)
 
-    acq_idxs = initialize(obj, N, choices, init_seed)
+    acq_idxs = initialize(N, choices, init_seed, init_mode)
     X = choices[acq_idxs]
     Y = obj(X).unsqueeze(1)
 

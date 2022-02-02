@@ -1,6 +1,7 @@
 from argparse import ArgumentParser, Namespace
 from typing import Optional, Sequence
 
+from boip.initialize import InitMode
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> Namespace:
     parser = ArgumentParser()
@@ -10,11 +11,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> Namespace:
         "-c",
         "--num-choices",
         type=int,
-        default=100000,
+        default=10000,
         help="the number of points with which to discretize the objective function",
     )
-    parser.add_argument("-N", type=int, default=100, help="the number of initialization points")
-    parser.add_argument("-q", "--batch-size", type=int, default=int)
+    parser.add_argument("-N", type=int, default=10, help="the number of initialization points")
+    parser.add_argument("-q", "--batch-size", type=int, default=10)
     parser.add_argument(
         "-T", type=int, default=100, help="the number iterations to perform optimization"
     )
@@ -28,12 +29,14 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> Namespace:
         "-ds",
         "--discretization-seed",
         type=int,
+        default=42,
         help="the random seed to use for discrete landscapes",
     )
     parser.add_argument("-p", "--prob", type=float)
     parser.add_argument("-a", "--alpha", type=float, default=1.0)
     parser.add_argument("--output-dir", help="the directory under which to save the outputs")
     parser.add_argument("--smoke-test", action="store_true")
+    parser.add_argument("--init-mode", type=InitMode.from_str, default=InitMode.UNIFORM)
     parser.add_argument("-v", "--verbose", action="count", default=0)
 
     return parser.parse_args(argv)
