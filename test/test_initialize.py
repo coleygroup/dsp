@@ -31,33 +31,33 @@ def seed(request):
 
 def test_inavlid_init_mode():
     with pytest.raises(ValueError):
-        initialize(None, 0, [], None, "foo")
+        initialize(0, [], None, "foo")
 
 
 @pytest.mark.parametrize("_", range(3))
 def test_init_uniform_no_seed(choices, m, _):
-    I = initialize(None, m, choices, None, InitMode.UNIFORM)
-    J = initialize(None, m, choices, None, InitMode.UNIFORM)
+    I = initialize(m, choices, None, InitMode.UNIFORM)
+    J = initialize(m, choices, None, InitMode.UNIFORM)
 
     assert not torch.equal(I, J)
 
 
 def test_init_uniform_seeded(choices, m, seed):
-    I = initialize(None, m, choices, seed, InitMode.UNIFORM)
-    J = initialize(None, m, choices, seed, InitMode.UNIFORM)
+    I = initialize(m, choices, seed, InitMode.UNIFORM)
+    J = initialize(m, choices, seed, InitMode.UNIFORM)
 
     assert torch.equal(I, J)
 
 
 @pytest.mark.parametrize("_", range(3))
 def test_init_LHC_no_seed(choices, m, _):
-    I = initialize(None, m, choices, None, InitMode.LHC)
-    J = initialize(None, m, choices, None, InitMode.LHC)
+    I = initialize(m, choices, None, InitMode.LHC)
+    J = initialize(m, choices, None, InitMode.LHC)
 
     assert not torch.equal(I, J)
 
 def test_init_LHC_seeded(choices, m, seed):
-    I = initialize(None, m, choices, seed, InitMode.LHC)
-    J = initialize(None, m, choices, seed, InitMode.LHC)
+    I = initialize(m, choices, seed, InitMode.LHC)
+    J = initialize(m, choices, seed, InitMode.LHC)
 
     assert torch.equal(I, J)
