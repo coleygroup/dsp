@@ -103,7 +103,7 @@ def optimize(
 
         if prune_inputs:
             if not use_predicted_threshold and isinstance(k_or_threshold, int):
-                k_or_threshold = torch.topk(Y, k_or_threshold, dim=0, sorted=True)[0][-1]
+                k_or_threshold = torch.topk(Y, k_or_threshold, dim=0, sorted=True)[0][-1].item()
                 
             pruned_idxs, _ = prune(
                 choices, model, k_or_threshold, prob, prune_mask + acq_mask, gamma

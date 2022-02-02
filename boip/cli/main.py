@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import List, Tuple
+from matplotlib import use
 
 import numpy as np
 from torch import Tensor
@@ -31,7 +32,10 @@ def main():
         obj = boip.build_objective("michalewicz")
         choices = boip.discretize(obj, 10000, 42)
         results = [
-            boip.optimize(obj, 10, 20, choices, 10, True, 10, 0.025, verbose=True)
+            boip.optimize(
+                obj, 10, 20, choices, 10, True, 10, 0.025, 1, 
+                use_predicted_threshold=False, verbose=True
+            )
             for _ in tqdm(range(3), "smoke test")
         ]
         X, Y, H = collate_results(results)
