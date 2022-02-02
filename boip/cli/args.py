@@ -42,6 +42,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> Namespace:
     )
     parser.add_argument("-p", "--prob", type=float)
     parser.add_argument("--k-or-threshold", type=int_or_float)
+    parser.add_argument("--use-observed-threshold", action="store_true")
     parser.add_argument("-g", "--gamma", type=float, default=1.0)
     parser.add_argument("--output-dir", help="the directory under which to save the outputs")
     parser.add_argument("--smoke-test", action="store_true")

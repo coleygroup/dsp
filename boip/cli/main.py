@@ -71,6 +71,7 @@ def main():
             args.k_or_threshold,
             args.prob,
             args.gamma,
+            not args.use_observed_threshold,
             init_mode=args.init_mode,
             verbose=args.verbose,
         )

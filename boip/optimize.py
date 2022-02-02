@@ -25,7 +25,7 @@ def optimize(
     k_or_threshold: Union[int, float] = 1,
     prob: float = 0.025,
     gamma: float = 1.0,
-    no_reacquire: bool = True,
+    use_predicted_threshold: bool = True,
     init_seed: Optional[int] = None,
     init_mode: InitMode = InitMode.UNIFORM,
     verbose: int = 0,
@@ -46,15 +46,16 @@ def optimize(
         the number of points to take in each batch
     prune : bool, default=False
         whether to prune the input space irreversibly
-    k : int, default=1
+    k_or_threshold : int, default=1
         the rank of point to compare each candidate pruning point to
     prob : float, default=0.
         the mimimum probability a candidate point must have to improve upon the k-th best
         predicted mean in order to be retained
     gamma : float, default=1.0
         the amount by which to scale the predicted variances for pruning
-    no_reacquire : bool, default=True
-        whether points can be reacquired
+    use_predicted_threshold : bool, default=True
+        if using a ranking-based threshold, whether the hit threshold should be determined from
+        k-th best observation or k-th best prediction
     init_seed: Optional[int] = None
         the seed with which to sample random initial points
     init_mode: InitMode = InitMode.UNIFORM
@@ -101,6 +102,9 @@ def optimize(
         fit_model(X, model, optim, mll, verbose=verbose)
 
         if prune_inputs:
+            if not use_predicted_threshold and isinstance(k_or_threshold, int):
+                k_or_threshold = torch.topk(Y, k_or_threshold, dim=0, sorted=True)[0][-1]
+                
             pruned_idxs, _ = prune(
                 choices, model, k_or_threshold, prob, prune_mask + acq_mask, gamma
             )
@@ -119,8 +123,9 @@ def optimize(
         acqf = UpperConfidenceBound(model, beta=2)
         A = acqf(choices.unsqueeze(1))
         A[prune_mask] = -np.inf
-        if no_reacquire:
-            A[acq_mask] = -np.inf
+        A[acq_mask] = -np.inf
+        # if no_reacquire:
+        #     A[acq_mask] = -np.inf
 
         _, acq_idxs = torch.topk(A, q, dim=0, sorted=True)
         X_t = choices[acq_idxs]
@@ -132,10 +137,10 @@ def optimize(
         X = torch.cat((X, X_t))
         Y = torch.cat((Y, Y_t))
 
-        if no_reacquire and len(choices[~(acq_mask + prune_mask)]) == 0:
-            print("no points left! Stopping...")
-            break
-        elif len(choices[~prune_mask]) == 0:
+        # if no_reacquire and len(choices[~(acq_mask + prune_mask)]) == 0:
+        #     print("no points left! Stopping...")
+        #     break
+        if len(choices[~prune_mask]) == 0:
             print("no points left! Stopping...")
             break
 
