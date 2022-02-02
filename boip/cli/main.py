@@ -87,11 +87,11 @@ def main():
         #     False,
         #     verbose=args.verbose,
         # )
-        labels = ("X", "Y", "H")
 
-        np.savez_compressed(output_dir / "full.npz", **dict(zip(labels, full)))
-        np.savez_compressed(output_dir / "prune.npz", **dict(zip(labels, prune)))
-        # np.savez_compressed(output_dir / "reacq.npz", **dict(zip(labels, reacq)))
+        keys = ("X", "Y", "H")
+        np.savez_compressed(output_dir / "full.npz", **dict(zip(keys, full)))
+        np.savez_compressed(output_dir / "prune.npz", **dict(zip(keys, prune)))
+        # np.savez_compressed(output_dir / "reacq.npz", **dict(zip(keys, reacq)))
 
         exit()
 
@@ -137,7 +137,7 @@ def main():
     Xs, Ys, Hs = zip(
         *(collate_results(trials) for trials in [results_full, results_prune])
     )
-    keys = ('FULL', 'PRUNE', "REACQUIRE")
+    keys = ("FULL", "PRUNE")
 
     np.savez(output_dir / 'X.npz', **dict(zip(keys, Xs)))
     np.savez(output_dir / 'Y.npz', **dict(zip(keys, Ys)))
