@@ -9,7 +9,7 @@ def N(request):
 
 @pytest.fixture
 def Y_mean(N):
-    return torch.distributions.Uniform(0, 1).sample([N, 1])
+    return torch.distributions.Uniform(0, 1).sample([N])
 
 @pytest.fixture
 def Y_var(Y_mean):
