@@ -23,18 +23,19 @@ def pad_arrays(A, B):
         return pad(B, delta)
 
 
-def save_arrays(npz_filepath, full, prune, reacq):
-    if npz_filepath.exists():
-        npz = np.load(npz_filepath)
-        full = np.concatenate((npz["FULL"], full))
-        prune = np.concatenate((npz["PRUNE"], prune))
-        reacq = np.concatenate((npz["REACQ"], reacq))
+def save_arrays(npz_filepath, full, prune):
+    # if npz_filepath.exists():
+    #     npz = np.load(npz_filepath)
+    #     full = np.concatenate((npz["FULL"], full))
+    #     prune = np.concatenate((npz["PRUNE"], prune))
+    #     # reacq = np.concatenate((npz["REACQ"], reacq))
 
-    np.savez_compressed(npz_filepath, FULL=full, PRUNE=prune, REACQ=reacq)
+    np.savez_compressed(npz_filepath, FULL=full, PRUNE=prune)
 
 def main():
     parser = ArgumentParser()
     parser.add_argument("--parent-dir", type=Path)
+    parser.add_argument("--clean", action="store_true")
 
     args = parser.parse_args()
 
@@ -46,10 +47,7 @@ def main():
     Y_prune = []
     H_prune = []
 
-    X_reacq = []
-    Y_reacq = []
-    H_reacq = []
-
+    missing_runs = []
     for p in tqdm(args.parent_dir.iterdir(), "Collating", unit="rep"):
         if not p.is_dir():
             continue
@@ -57,9 +55,11 @@ def main():
         if not (args.parent_dir / "log.txt").exists():
             shutil.move(p / "log.txt", args.parent_dir / "log.txt")
 
-        X_full, Y_full, H_full = append_arrays(p / "full.npz", X_full, Y_full, H_full)
-        X_prune, Y_prune, H_prune = append_arrays(p / "prune.npz", X_prune, Y_prune, H_prune)
-        X_reacq, Y_reacq, H_reacq = append_arrays(p / "reacq.npz", X_reacq, Y_reacq, H_reacq)
+        try:
+            X_full, Y_full, H_full = append_arrays(p / "full.npz", X_full, Y_full, H_full)
+            X_prune, Y_prune, H_prune = append_arrays(p / "prune.npz", X_prune, Y_prune, H_prune)
+        except FileNotFoundError:
+            missing_runs.append(p)
 
     X_full = np.array(X_full)
     Y_full = np.array(Y_full).squeeze(-1)
@@ -72,22 +72,24 @@ def main():
         length = max(len(A) for A in X_prune)
         X_prune = np.array([pad(X, length) for X in X_prune])
         Y_prune = np.array([pad(Y, length) for Y in Y_prune]).squeeze(-1)
-        print(X_prune.shape, Y_prune.shape)
-        
     H_prune = np.array(H_prune)
 
-    X_reacq = np.array(X_reacq)
-    Y_reacq = np.array(Y_reacq).squeeze(-1)
-    H_reacq = np.array(H_reacq)
+    print(X_prune.shape, Y_prune.shape)
+    print(f"Missing runs: {[p.stem for p in missing_runs]}")
 
-    save_arrays(args.parent_dir / 'X.npz', X_full, X_prune, X_reacq)
-    save_arrays(args.parent_dir / 'Y.npz', Y_full, Y_prune, Y_reacq)
-    save_arrays(args.parent_dir / 'H.npz', H_full, H_prune, H_reacq)
+    # X_reacq = np.array(X_reacq)
+    # Y_reacq = np.array(Y_reacq).squeeze(-1)
+    # H_reacq = np.array(H_reacq)
+
+    save_arrays(args.parent_dir / 'X.npz', X_full, X_prune)
+    save_arrays(args.parent_dir / 'Y.npz', Y_full, Y_prune)
+    save_arrays(args.parent_dir / 'H.npz', H_full, H_prune)
         
-    for p in tqdm(args.parent_dir.iterdir(), "Cleaning", unit="rep"):
-        if not p.is_dir():
-            continue
-        shutil.rmtree(p)
+    if args.clean:
+        for p in tqdm(args.parent_dir.iterdir(), "Cleaning", unit="rep"):
+            if not p.is_dir():
+                continue
+            shutil.rmtree(p)
 
 if __name__ == "__main__":
     main()
