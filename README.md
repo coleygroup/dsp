@@ -87,7 +87,7 @@ After each set of runs was complete, the runs were collated:
 ```
 python scripts/collate.py --parent-dir path/to/OBJECTIVE
 ```
-
+you can optionally run this script with the `--clean` flag to consolidate your directory structure by deleting the individual run subdirectories (no information is lost as all runs are stored in the resulting array). However, you can't rerun the script with new data after `clean`ing, i.e., perform additional runs and stack them onto the `collate`d results.
 ## Figures
 
 See the [figures noteboook](notebooks/figs.ipynb) for details
