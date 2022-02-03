@@ -51,18 +51,23 @@ usage: boip [-h] [-o OBJECTIVE] [-c NUM_CHOICES] [-N N] [-q BATCH_SIZE] [-T T] [
 optional arguments:
   -h, --help            show this help message and exit
   -o OBJECTIVE, --objective OBJECTIVE
+                        the test function to use (case insensitive)
   -c NUM_CHOICES, --num-choices NUM_CHOICES
                         the number of points with which to discretize the objective function
   -N N                  the number of initialization points
   -q BATCH_SIZE, --batch-size BATCH_SIZE
   -T T                  the number iterations to perform optimization
   -R REPEATS, --repeats REPEATS
-                        the number of repetitions to perform. If not specified, then collate.py must be run afterwards for further analysis.
+                        the number of repetitions to perform. If not specified, then collate.py must be run afterwards for further analysis
   -ds DISCRETIZATION_SEED, --discretization-seed DISCRETIZATION_SEED
                         the random seed to use for discrete landscapes
-  -p PROB, --prob PROB  the minimum probability that a point is a hit for it to be retained
-  -a ALPHA, --alpha ALPHA
-                        the amount by which to scale the uncertainty estimates
+  -p PROB, --prob PROB  the minimum hit probability needed to retain a given point during pruning
+  --k-or-threshold K_OR_THRESHOLD
+                        the rank of the predictions (int) or absolute threshold (float) to use when determing what constitutes a predicted hit
+  --use-observed-rank
+                        if using rank-based hit thresholding, calculate the threshold from the k-th best observation, rather than the k-th best predicted mean
+  -g GAMMA, --gamma GAMMA
+                        the amount by which to scale the variance estimates
   --output-dir OUTPUT_DIR
                         the directory under which to save the outputs
   --smoke-test
