@@ -140,7 +140,7 @@ def optimize(
         # if no_reacquire and len(choices[~(acq_mask + prune_mask)]) == 0:
         #     print("no points left! Stopping...")
         #     break
-        if len(choices[~prune_mask]) == 0:
+        if len(choices[~acq_mask + prune_mask]) == 0:
             print("no points left! Stopping...")
             break
 

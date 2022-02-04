@@ -61,7 +61,6 @@ def main():
             choices,
             args.batch_size,
             False,
-            init_mode=args.init_mode,
             verbose=args.verbose,
         )
         prune = boip.optimize(
@@ -75,7 +74,6 @@ def main():
             args.prob,
             args.gamma,
             not args.use_observed_threshold,
-            init_mode=args.init_mode,
             verbose=args.verbose,
         )
         # reacq = boip.optimize(

@@ -35,13 +35,11 @@ def build_objective(obj: str) -> SyntheticTestFunction:
 
 def valid_objectives() -> Set[str]:
     return {
-        "BEALE",
-        "BRANIN",
-        "BUKIN",
-        "CAMEL",
-        "COSINE8",
-        "COSINES",
-        "DROP-WAVE",
-        "MICHALEWICZ",
-        "LEVY",
+        "beale",
+        "branin",
+        "bukin",
+        "camel",
+        "drop-wave",
+        "michalewicz",
+        "levy",
     }
