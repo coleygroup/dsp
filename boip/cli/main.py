@@ -33,8 +33,7 @@ def main():
         choices = boip.discretize(obj, 10000, 42)
         results = [
             boip.optimize(
-                obj, 10, 20, choices, 10, True, 10, 0.025, 1, 
-                use_predicted_threshold=False, verbose=True
+                obj, 10, 20, choices, 10, True, 10, 0.025, gamma=2.0, verbose=True
             )
             for _ in tqdm(range(3), "smoke test")
         ]

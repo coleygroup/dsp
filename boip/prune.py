@@ -12,7 +12,6 @@ def prune(
     k_or_threshold: Union[int, float],
     prob: float,
     mask: Tensor,
-    threshold: Optional[float] = None,
     gamma: float = 1.0,
 ) -> Tuple[Tensor, Tensor]:
     """prune the possible choices based on current model's beliefs
