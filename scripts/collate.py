@@ -65,21 +65,14 @@ def main():
     Y_full = np.array(Y_full).squeeze(-1)
     H_full = np.array(H_full)
 
-    try:
-        X_prune = np.array(X_prune)
-        Y_prune = np.array(Y_prune).squeeze(-1)
-    except ValueError:
-        length = max(len(A) for A in X_prune)
-        X_prune = np.array([pad(X, length) for X in X_prune])
-        Y_prune = np.array([pad(Y, length) for Y in Y_prune]).squeeze(-1)
+    length = max(len(A) for A in X_prune)
+    X_prune = np.array([pad(X, length) for X in X_prune])
+    Y_prune = np.array([pad(Y, length) for Y in Y_prune]).squeeze(-1)
     H_prune = np.array(H_prune)
 
-    print(X_prune.shape, Y_prune.shape)
+    print("X shape: ", X_prune.shape)
+    print("Y shape: ", Y_prune.shape)
     print(f"Missing runs: {[p.stem for p in missing_runs]}")
-
-    # X_reacq = np.array(X_reacq)
-    # Y_reacq = np.array(Y_reacq).squeeze(-1)
-    # H_reacq = np.array(H_reacq)
 
     save_arrays(args.parent_dir / 'X.npz', X_full, X_prune)
     save_arrays(args.parent_dir / 'Y.npz', Y_full, Y_prune)
