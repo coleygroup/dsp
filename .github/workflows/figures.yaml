@@ -10,8 +10,7 @@ jobs:
     name: create figures
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
       - name: build info
         shell: bash
@@ -49,3 +48,16 @@ jobs:
         shell: bash -l {0}
         run: |
           bash ./scripts/make_all_figs.sh
+      
+      - name: check status
+        run: git status
+        
+      - name: Commit and Push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        # use account 'github-actions[bot]' to set the git config
+
+          git add -f figures/github/*.png
+          git commit -m "new github figures"
+          git push
