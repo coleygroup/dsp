@@ -35,7 +35,12 @@ jobs:
         shell: bash -l {0}
         run: |
           pip install -e . --no-deps
-          
+      
+      - name: install additonal dependencies
+        shell: bash -l {0}
+        run: |
+          pip install matplotlib seaborn
+
       - name: conda list
         shell: bash -l {0}
         run: conda list
