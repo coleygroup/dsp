@@ -52,12 +52,12 @@ jobs:
       - name: check status
         run: git status
 
-      - name: Commit and Push
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        # use account 'github-actions[bot]' to set the git config
+      # - name: Commit and Push
+      #   run: |
+      #     git config --global user.name "github-actions[bot]"
+      #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      #   # use account 'github-actions[bot]' to set the git config
 
-          git add -f figures/github/*.png
-          git commit -m "new github figures"
-          git push
+      #     git add -f figures/github/*.png
+      #     git commit -m "new github figures"
+      #     git push
