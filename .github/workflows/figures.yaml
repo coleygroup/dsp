@@ -51,7 +51,7 @@ jobs:
       
       - name: check status
         run: git status
-        
+
       - name: Commit and Push
         run: |
           git config --global user.name "github-actions[bot]"
