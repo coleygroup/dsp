@@ -15,4 +15,5 @@ dependencies:
   - pip:
     - numpy
     - pytest
+    - pytest-cov
     - tqdm
