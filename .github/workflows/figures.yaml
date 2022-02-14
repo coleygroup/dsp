@@ -2,8 +2,8 @@ name: figures
 
 on:
   push:
-    paths:
-      - "data/**"
+    branches:
+      - "main"
 
 jobs:
   figures:
