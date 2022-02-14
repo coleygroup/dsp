@@ -48,6 +48,6 @@ def test_retain_none(Y_mean, Y_var_tiny):
     "threshold,expected_prob", [(-1, 1), (2, 0)]
 )
 def test_prob_above_tiny_var(Y_mean, Y_var_tiny, threshold, expected_prob):
-    P = prob_above(Y_mean, Y_var_tiny, threshold)
+    P = prob_above(Y_mean, Y_var_tiny, torch.tensor(threshold))
 
     torch.testing.assert_close(P, expected_prob * torch.ones_like(P))

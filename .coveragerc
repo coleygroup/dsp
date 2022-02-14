@@ -1,0 +1,7 @@
+[run]
+branch = true
+
+omit =
+    boip/objectives/gsobol.py
+    boip/objectives/cosines.py
+    boip/optimize.py
