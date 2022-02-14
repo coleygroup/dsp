@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - "main"
+    # paths:
+    #   - "data/**"
+    #   - "scripts/figures.py"
 
 jobs:
   figures:
@@ -52,12 +55,10 @@ jobs:
       - name: check status
         run: git status
 
-      # - name: Commit and Push
-      #   run: |
-      #     git config --global user.name "github-actions[bot]"
-      #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      #   # use account 'github-actions[bot]' to set the git config
-
-      #     git add -f figures/github/*.png
-      #     git commit -m "new github figures"
-      #     git push
+      - name: Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@github.com"
+          git add figures/github/*.png
+          git commit -m "update github figures"
+          git push
