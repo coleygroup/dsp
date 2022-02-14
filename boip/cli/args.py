@@ -30,9 +30,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> Namespace:
         default=10000,
         help="the number of points with which to discretize the objective function",
     )
-    parser.add_argument(
-        "-N", type=int, default=10, help="the number of initialization points"
-    )
+    parser.add_argument("-N", type=int, default=10, help="the number of initialization points")
     parser.add_argument("-q", "--batch-size", type=int, default=10)
     parser.add_argument(
         "-T",
@@ -70,9 +68,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> Namespace:
         help="if using rank-based hit thresholding, calculate the threshold from the k-th best observation, rather than the k-th best predicted mean",
     )
     parser.add_argument("-g", "--gamma", type=float, default=1.0)
-    parser.add_argument(
-        "--output-dir", help="the directory under which to save the outputs"
-    )
+    parser.add_argument("--output-dir", help="the directory under which to save the outputs")
     parser.add_argument("--smoke-test", action="store_true")
     parser.add_argument("--init-mode", type=InitMode.from_str, default=InitMode.UNIFORM)
     parser.add_argument("-v", "--verbose", action="count", default=0)

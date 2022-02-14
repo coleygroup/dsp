@@ -104,7 +104,7 @@ def optimize(
         if prune_inputs:
             if not use_predicted_threshold and isinstance(k_or_threshold, int):
                 k_or_threshold = torch.topk(Y, k_or_threshold, dim=0, sorted=True)[0][-1].item()
-                
+
             pruned_idxs, _ = prune(
                 choices, model, k_or_threshold, prob, prune_mask + acq_mask, gamma
             )
@@ -124,8 +124,6 @@ def optimize(
         A = acqf(choices.unsqueeze(1))
         A[prune_mask] = -np.inf
         A[acq_mask] = -np.inf
-        # if no_reacquire:
-        #     A[acq_mask] = -np.inf
 
         _, acq_idxs = torch.topk(A, q, dim=0, sorted=True)
         X_t = choices[acq_idxs]
@@ -137,9 +135,6 @@ def optimize(
         X = torch.cat((X, X_t))
         Y = torch.cat((Y, Y_t))
 
-        # if no_reacquire and len(choices[~(acq_mask + prune_mask)]) == 0:
-        #     print("no points left! Stopping...")
-        #     break
         if len(choices[~(acq_mask + prune_mask)]) == 0:
             print("no points left! Stopping...")
             break

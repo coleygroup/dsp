@@ -5,6 +5,7 @@ import shutil
 import numpy as np
 from tqdm import tqdm
 
+
 def append_arrays(npz_filepath, X, Y, Z):
     npz = np.load(npz_filepath)
 
@@ -14,27 +15,14 @@ def append_arrays(npz_filepath, X, Y, Z):
 
     return X, Y, Z
 
+
 def pad(x, length):
-    return np.pad(x, ((0, length-len(x)), (0, 0)), constant_values=np.nan)
+    return np.pad(x, [(0, length - len(x)), (0, 0)], constant_values=np.nan)
 
-def pad_arrays(A, B):
-    delta = (np.array(A.shape) - np.array(B.shape))[1]
-    if delta > 0:
-        return pad(B, delta)
-
-
-def save_arrays(npz_filepath, full, prune):
-    # if npz_filepath.exists():
-    #     npz = np.load(npz_filepath)
-    #     full = np.concatenate((npz["FULL"], full))
-    #     prune = np.concatenate((npz["PRUNE"], prune))
-    #     # reacq = np.concatenate((npz["REACQ"], reacq))
-
-    np.savez_compressed(npz_filepath, FULL=full, PRUNE=prune)
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("--parent-dir", type=Path)
+    parser.add_argument("parent_dir", type=Path)
     parser.add_argument("--clean", action="store_true")
 
     args = parser.parse_args()
@@ -47,7 +35,7 @@ def main():
     Y_prune = []
     H_prune = []
 
-    missing_runs = []
+    missing_reps = []
     for p in tqdm(args.parent_dir.iterdir(), "Collating", unit="rep"):
         if not p.is_dir():
             continue
@@ -59,30 +47,35 @@ def main():
             X_full, Y_full, H_full = append_arrays(p / "full.npz", X_full, Y_full, H_full)
             X_prune, Y_prune, H_prune = append_arrays(p / "prune.npz", X_prune, Y_prune, H_prune)
         except FileNotFoundError:
-            missing_runs.append(p)
+            missing_reps.append(p.stem.split("-")[-1])
 
     X_full = np.array(X_full)
     Y_full = np.array(Y_full).squeeze(-1)
     H_full = np.array(H_full)
 
     length = max(len(A) for A in X_prune)
+
     X_prune = np.array([pad(X, length) for X in X_prune])
     Y_prune = np.array([pad(Y, length) for Y in Y_prune]).squeeze(-1)
     H_prune = np.array(H_prune)
 
     print("X shape: ", X_prune.shape)
     print("Y shape: ", Y_prune.shape)
-    print(f"Missing runs: {[p.stem for p in missing_runs]}")
+    print(f"Missing reps: {','.join(missing_reps)}")
 
-    save_arrays(args.parent_dir / 'X.npz', X_full, X_prune)
-    save_arrays(args.parent_dir / 'Y.npz', Y_full, Y_prune)
-    save_arrays(args.parent_dir / 'H.npz', H_full, H_prune)
-        
+    for filename, A_f, A_p in [
+        ("X.npz", X_full, X_prune),
+        ("Y.npz", Y_full, Y_prune),
+        ("H.npz", H_full, H_prune),
+    ]:
+        np.savez_compressed(args.parent_dir / filename, FULL=A_f, PRUNE=A_p)
+
     if args.clean:
         for p in tqdm(args.parent_dir.iterdir(), "Cleaning", unit="rep"):
             if not p.is_dir():
                 continue
             shutil.rmtree(p)
+
 
 if __name__ == "__main__":
     main()

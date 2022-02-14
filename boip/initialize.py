@@ -10,6 +10,7 @@ from enum import auto
 
 from boip.utils import AutoName
 
+
 class InitMode(AutoName):
     LHC = auto()
     UNIFORM = auto()
@@ -22,7 +23,7 @@ def initialize(
     init_mode: InitMode = InitMode.UNIFORM,
 ) -> Tensor:
     """select N points from choices with the given seed and mode and return their indices
-    
+
     Parameters
     ----------
     N : int
@@ -37,7 +38,7 @@ def initialize(
         - InitMode.LHC: use latin hypercube sampling to select N initial points from within the
         bounds of the design space specfied by `choices` then select the nearest neighbors within
         the design space
-    
+
     Returns
     -------
     idxs : Tensor

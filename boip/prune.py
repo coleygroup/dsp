@@ -1,5 +1,4 @@
-from typing import Optional, Tuple, Union
-from numpy import isin
+from typing import Tuple, Union
 
 import torch
 from torch import Tensor
@@ -53,9 +52,7 @@ def prune(
     elif isinstance(k_or_threshold, float):
         threshold = torch.tensor(k_or_threshold)
     else:
-        raise TypeError(
-            f"k_or_threshold must be of type [int, float]! got: {type(k_or_threshold)}"
-        )
+        raise TypeError(f"k_or_threshold must be of type [int, float]! got: {type(k_or_threshold)}")
 
     return pruned_idxs_prob(Y_hat.mean, gamma * Y_hat.variance, threshold, prob, mask)
 
@@ -76,5 +73,4 @@ def pruned_idxs_prob(
 def prob_above(Y_mean: Tensor, Y_var: Tensor, threshold: Tensor) -> Tensor:
     """the probability that each prediction (given mean and uncertainty) is above the input
     threshold"""
-    Z = (Y_mean - threshold) / Y_var.sqrt()
-    return torch.distributions.normal.Normal(0, 1).cdf(Z)
+    return 1 - torch.distributions.normal.Normal(Y_mean, Y_var.sqrt()).cdf(threshold)
