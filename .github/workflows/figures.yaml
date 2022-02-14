@@ -59,6 +59,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@github.com"
-          git add figures/github/*.png
+          git add -f figures/github/*.png
           git commit -m "update github figures"
           git push
