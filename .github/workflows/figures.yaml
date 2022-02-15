@@ -53,13 +53,13 @@ jobs:
         run: |
           bash ./scripts/make_all_figs.sh
       
-      - name: pull
-        run: git pull
-
       - name: Commit and Push
         run: |
+          git pull
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@github.com"
           git add -f figures/github/*.png
-          git commit -m "update github figures"
-          git push
+          if [[ `git status --porcelain` ]]; then
+            git commit -m "update github figures"
+            git push
+          fi

@@ -23,13 +23,13 @@ jobs:
           src: "./boip"
           options: "-l 100 -t py38 --skip-magic-trailing-comma"
 
-      - name: pull
-        run: git pull
-
       - name: commit and push
         run: |
+          git pull
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@github.com"
-          git add boip
-          git commit -m "lint with black"
-          git push
+          if [[ `git status --porcelain` ]]; then
+            git add boip
+            git commit -m "update github figures"
+            git push
+          fi
