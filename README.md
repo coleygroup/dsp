@@ -24,11 +24,11 @@ This repository contains code for replicating the data and figures of the synthe
 ## Requirements
 - `python==3.8`
 - `botorch`, `gpytorch`, `pytorch`, `numpy`, `scipy`, `tqdm`
-- **(figures)** `matplotlib`, `seaborn`
+- **(plotting)** `matplotlib`, `seaborn`
 - **(testing)** `pytest`
 
 ## Installation
-1. `conda env create -f enviroment.yml`
+1. `conda env create -f  `[`enviroment.yml`](./environment.yml)`
 1. `pip install -e .`
 
 # Testing
