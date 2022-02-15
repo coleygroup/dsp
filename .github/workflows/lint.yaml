@@ -31,5 +31,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@github.com"
           git add boip
-          git commit -m "update github figures"
+          git commit -m "lint with black"
           git push
