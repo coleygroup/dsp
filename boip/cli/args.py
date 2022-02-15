@@ -33,10 +33,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> Namespace:
     parser.add_argument("-N", type=int, default=10, help="the number of initialization points")
     parser.add_argument("-q", "--batch-size", type=int, default=10)
     parser.add_argument(
-        "-T",
-        type=int,
-        default=100,
-        help="the number iterations to perform optimization",
+        "-T", type=int, default=100, help="the number iterations to perform optimization"
     )
     parser.add_argument(
         "-R",
