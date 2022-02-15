@@ -1,11 +1,9 @@
+from enum import auto
 from typing import Optional
 
-from botorch.test_functions.base import BaseTestProblem
 from scipy.stats import qmc
 import torch
 from torch import Tensor
-
-from enum import auto
 
 
 from boip.utils import AutoName
@@ -17,10 +15,7 @@ class InitMode(AutoName):
 
 
 def initialize(
-    N: int,
-    choices: Tensor,
-    seed: Optional[int] = None,
-    init_mode: InitMode = InitMode.UNIFORM,
+    N: int, choices: Tensor, seed: Optional[int] = None, init_mode: InitMode = InitMode.UNIFORM
 ) -> Tensor:
     """select N points from choices with the given seed and mode and return their indices
 

@@ -1,0 +1,65 @@
+name: figures
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "data/**"
+      - "scripts/figures.py"
+      - "scripts/make_all_figs.sh"
+
+jobs:
+  figures:
+    name: create figures
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: build info
+        shell: bash
+        run: |
+          uname -a
+          df -h
+          ulimit -a
+
+      - name: setup conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: 3.8
+          environment-file: ./.github/test-env.yml
+          channels: conda-forge,defaults
+          activate-environment: test
+          auto-update-conda: false
+          auto-activate-base: false
+          show-channel-urls: true
+
+      - name: install package
+        shell: bash -l {0}
+        run: |
+          pip install -e . --no-deps
+      
+      - name: install additonal dependencies
+        shell: bash -l {0}
+        run: |
+          pip install matplotlib seaborn
+
+      - name: conda list
+        shell: bash -l {0}
+        run: conda list
+
+      - name: make figures
+        shell: bash -l {0}
+        run: |
+          bash ./scripts/make_all_figs.sh
+      
+      - name: pull
+        run: git pull
+
+      - name: Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@github.com"
+          git add -f figures/github/*.png
+          git commit -m "update github figures"
+          git push

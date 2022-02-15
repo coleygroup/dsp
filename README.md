@@ -1,6 +1,6 @@
 [//]: # (Badges)
 [![CI](https://github.com/davidegraff/boip/actions/workflows/CI.yaml/badge.svg)](https://github.com/davidegraff/boip/actions/workflows/CI.yaml)
-
+[![codecov](https://codecov.io/gh/davidegraff/boip/branch/main/graph/badge.svg?token=DBBHSQLW8A)](https://codecov.io/gh/davidegraff/boip)
 
 # boip
 **B**ayesian **O**ptimization with **I**nput space **P**runing

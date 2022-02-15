@@ -64,13 +64,7 @@ def main():
 
     if args.repeats is None or args.repeats <= 1:
         full = boip.optimize(
-            obj,
-            args.N,
-            args.T,
-            choices,
-            args.batch_size,
-            False,
-            verbose=args.verbose,
+            obj, args.N, args.T, choices, args.batch_size, False, verbose=args.verbose
         )
         prune = boip.optimize(
             obj,

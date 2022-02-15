@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - "main"
+    paths:
+      - "boip/**"
   pull_request:
     branches:
       - "main"
@@ -14,8 +16,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+      
       - uses: psf/black@stable
         with:
           src: "./boip"
           options: "-l 100 -t py38 --skip-magic-trailing-comma"
+
+      - name: pull
+        run: git pull
+
+      - name: commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@github.com"
+          git add boip
+          git commit -m "lint with black"
+          git push
