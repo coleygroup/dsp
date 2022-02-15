@@ -324,7 +324,7 @@ def f_hits_pruned(H, hit_idxs, T):
     return np.cumsum(hits_pruned_t, 1) / len(hit_idxs)
 
 
-def plot_IR_all(ax, x: np.ndarray, Y: np.ndarray, N: int, optima: np.ndarray, color, label: str):
+def plot_IR_all(ax, x: np.ndarray, Y: np.ndarray, n: int, optima: np.ndarray, color):
     """plot the immediate regret curves of the dataset onto axis ax
 
     Parameters
@@ -336,37 +336,39 @@ def plot_IR_all(ax, x: np.ndarray, Y: np.ndarray, N: int, optima: np.ndarray, co
     Y : np.ndarray
         an iterable of `r x t` array, where each entry is the observation made at
         iteration t of trial r for a specific dataset
-    N : int
+     : int
         the number of initial random observations
     optima : np.ndarray
         the optimal objective values
-    label : str
-        the label of the traces
 
     Returns
     -------
     List
         the artists corresponding to the plotted curves
     """
-    handles = []
-
-    R = immediate_regret(Y, optima)[:, N : N + len(x)]
+    R = immediate_regret(Y, optima)[:, n : n + len(x)]
     r = np.median(R, 0)
-    handles = ax.plot(
+
+    ax.plot(
         x,
-        r,
+        np.median(R, 0),
         color=color,
-        lw=5,
-        path_effects=[pe.Stroke(linewidth=7.5, foreground="k"), pe.Normal()],
-        label=label,
-        zorder=10,
+        lw=3,
+        path_effects=[pe.Stroke(linewidth=5, foreground="k"), pe.Normal()],
     )
-    c = handles[0].get_color()
-
     for r in R:
-        ax.plot(x, r, color=c, lw=3, alpha=0.2)
+        ax.plot(
+            x,
+            r,
+            color=color,
+            lw=1.5,
+            alpha=0.25
+        )
 
-    return handles[0]
+    ax.grid(True, axis="y", ls="--")
+    ax.tick_params(axis="x", which="both", direction="out", bottom=True)
+
+    return ax
 
 
 def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
@@ -380,7 +382,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
     axsTop = []
     axsBot = []
 
-    # ----------------------------------------- SETUP -----------------------------------------#
+    #----------------------------------------- SETUP -----------------------------------------#
 
     N = 10000
     ds = 42
@@ -397,7 +399,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
     optima_xs = choices[optima_idxs].numpy()
     optima_ys = y_all[optima_idxs]
 
-    # ---------------------------------------- PANEL A ----------------------------------------#
+    #---------------------------------------- PANEL A ----------------------------------------#
 
     xmin, ymin = choices.min(0)[0].numpy()
     xmax, ymax = choices.max(0)[0].numpy()
@@ -447,7 +449,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
 
     axsTop[0].set_title("A", weight="bold", loc="left", fontsize="large")
 
-    # ---------------------------------------- PANEL B ----------------------------------------#
+    #---------------------------------------- PANEL B ----------------------------------------#
 
     ax = fig.add_subplot(gs1[0])
 
@@ -482,7 +484,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
 
     axsBot[0].set_title("B", weight="bold", loc="left", fontsize="large")
 
-    # ---------------------------------------- PANEL C ----------------------------------------#
+    #---------------------------------------- PANEL C ----------------------------------------#
 
     ax = fig.add_subplot(gs1[1])
 
@@ -537,7 +539,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
 
     axsBot[1].set_title("C", weight="bold", loc="left", fontsize="large")
 
-    # ------------------------------------------------------------------------------------#
+    #-------------------------------------------------------------------------------------#
 
     fig.savefig(outfile, dpi=400, bbox_inches="tight")
 
@@ -608,49 +610,79 @@ def surface_regret(npzdirs, outfile):
     fig.savefig(outfile, dpi=400, bbox_inches="tight")
 
 
-def regret(npzdir, objective, outfile):
-    fig, ax = plt.subplots(1, 1, figsize=(7, 6))
-
-    n = 10
-    k = 10
-    q = 10
-
+def regret(npzdir, objective, outfile, all_traces: bool = False):
     obj = boip.objectives.build_objective(objective)
     choices = boip.objectives.discretize(obj, 10000, 42)
 
-    Y_npz = np.load(f"{npzdir}/Y.npz")
-    Y_full = Y_npz["FULL"]
-    Y_prune = Y_npz["PRUNE"]
-    H = np.load(f"{npzdir}/H.npz")["PRUNE"]
+    k = 10
+    n = 10
+    q = 10
 
     y_all = obj(choices).numpy()
     optimal_idxs = np.argpartition(y_all, -k)[-k:]
     optima = y_all[optimal_idxs]
 
-    handles = plot_IR(ax, Y_full, Y_prune, n, optima, obj, choices)
+    Y_npz = np.load(f"{npzdir}/Y.npz")
+    Y_f = Y_npz["FULL"]
+    Y_p = Y_npz["PRUNE"]
 
-    ax_twin = ax.twinx()
-    handles.append(plot_size_H(ax_twin, H, q, Y_prune.shape[1] // q))
+    if not all_traces:
+        fig, ax = plt.subplots(1, 1, figsize=(7, 6))
 
-    ax_twin.set_ylim(ax.get_ylim())
-    ax.grid(True, axis="y", ls="--")
+        H = np.load(f"{npzdir}/H.npz")["PRUNE"]
 
-    ax.xaxis.set_major_locator(MultipleLocator(500))
-    ax.xaxis.set_minor_locator(MultipleLocator(100))
-    ax.tick_params(axis="x", which="both", direction="out", bottom=True)
+        handles = plot_IR(ax, Y_f, Y_p, n, optima, obj, choices)
 
-    ax_twin.tick_params("y", colors="green")
+        ax_twin = ax.twinx()
+        handles.append(plot_size_H(ax_twin, H, q, Y_p.shape[1] // q))
 
-    ax.legend(handles=handles, loc="best")
+        ax.set_ylim(-0.05, 1.05)
+        ax_twin.set_ylim(ax.get_ylim())
+        ax.grid(True, axis="y", ls="--")
 
-    ax.set_xlabel("Objective Evaluations")
-    ax.set_ylabel(r"Fraction of Top-$10$ Identified")
-    ax_twin.set_ylabel("Relative Input Space Size")
+        ax.xaxis.set_major_locator(MultipleLocator(500))
+        ax.xaxis.set_minor_locator(MultipleLocator(100))
+        ax.tick_params(axis="x", which="both", direction="out", bottom=True)
 
-    fig.tight_layout()
+        ax_twin.tick_params("y", colors="green")
+
+        ax_twin.legend(
+            handles=handles,
+            loc="upper center",
+            bbox_transform=ax.transAxes,
+            bbox_to_anchor=[0.33, 1]
+        )
+
+        ax.set_xlabel("Objective Evaluations")
+        ax.set_ylabel(r"Fraction of Top-$10$ Identified")
+        ax_twin.set_ylabel("Relative Input Space Size")
+
+        fig.tight_layout()
+        
+    else:
+        fig, axs = plt.subplots(2, 1, figsize=(6.5, 12), sharey=True, sharex=True)
+
+        x = np.arange(Y_p.shape[1])[n:]
+
+        Ys = [Y_f, Y_p]
+        for ax, Y, c in zip(axs, Ys, sns.color_palette("dark", len(Ys))):
+            plot_IR_all(ax, x, Y, n, optima, c)
+
+        ax.xaxis.set_major_locator(MultipleLocator(500))
+        ax.xaxis.set_minor_locator(MultipleLocator(100))
+
+        axs[0].set_title("no pruning")
+        axs[1].set_title("pruning")
+
+        fig.supylabel(r"Fraction of Top-$10$ Identified", x=0.07, fontsize=18)
+        ax.set_xlabel("Objective Evaluations", y=-0.05, fontsize=18)
+
+        fig.supylabel(r"Fraction of Top-$10$ Identified", x=0.07, fontsize=18)
+        axs[1].set_xlabel("Objective Evaluations", y=-0.05, fontsize=18)
+
+        fig.tight_layout()
 
     fig.savefig(outfile, dpi=200, bbox_inches="tight")
-
 
 def gamma_perf(gamma_dir, objective, outfile):
     fig, axs = plt.subplots(1, 3, figsize=(6 * 3, 6), sharey=True)
@@ -736,6 +768,7 @@ def main():
         "npzdir", type=Path, help="the directory containing the X, Y, and H .npz files"
     )
     regret_parser.add_argument("objective", help="the objective function used for the runs")
+    regret_parser.add_argument("--all-traces", action="store_true", help="plot each indivudal trace")
     regret_parser.add_argument("-o", "--outfile", type=Path)
 
     gamma_parser = subparsers.add_parser("gamma-perf", help="gamma sweep multi-panel figure")
@@ -754,7 +787,7 @@ def main():
     elif args.figure == "combo":
         surface_regret(args.npzdirs, args.outfile)
     elif args.figure == "regret":
-        regret(args.npzdir, args.objective, args.outfile)
+        regret(args.npzdir, args.objective, args.outfile, args.all_traces)
     elif args.figure == "gamma-perf":
         gamma_perf(args.gamma_dir, args.objective, args.outfile)
 
