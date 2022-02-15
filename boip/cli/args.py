@@ -33,7 +33,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> Namespace:
     parser.add_argument("-N", type=int, default=10, help="the number of initialization points")
     parser.add_argument("-q", "--batch-size", type=int, default=10)
     parser.add_argument(
-        "-T", type=int, default=100, help="the number iterations to perform optimization"
+        "-T", type=int, default=100, help="the number of iterations to perform optimization"
     )
     parser.add_argument(
         "-R",
@@ -64,7 +64,13 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> Namespace:
         action="store_true",
         help="if using rank-based hit thresholding, calculate the threshold from the k-th best observation, rather than the k-th best predicted mean",
     )
-    parser.add_argument("-g", "--gamma", type=float, default=1.0)
+    parser.add_argument(
+        "-g",
+        "--gamma",
+        type=float,
+        default=1.0,
+        help="the amount by which to scale the predicted variances",
+    )
     parser.add_argument("--output-dir", help="the directory under which to save the outputs")
     parser.add_argument("--smoke-test", action="store_true")
     parser.add_argument("--init-mode", type=InitMode.from_str, default=InitMode.UNIFORM)

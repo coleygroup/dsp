@@ -45,8 +45,9 @@ To perform a sample run of BOIP, run `boip --smoke-test`. This should generate o
 
 BOIP is run via the command line like so:
 ```
-usage: boip [-h] [-o OBJECTIVE] [-c NUM_CHOICES] [-N N] [-q BATCH_SIZE] [-T T] [-R REPEATS]
-            [-ds DISCRETIZATION_SEED] [-p PROB] [-a ALPHA] [--output-dir OUTPUT_DIR] [--smoke-test] [-v]
+usage: boip [-h] [-o {levy,beale,bukin,branin,camel,michalewicz,drop-wave}] [-c NUM_CHOICES] [-N N] [-q BATCH_SIZE] [-T T] [-R REPEATS]
+            [-ds DISCRETIZATION_SEED] [-p PROB] [--k-or-threshold K_OR_THRESHOLD] [--use-observed-threshold]
+            [-g GAMMA] [--output-dir OUTPUT_DIR] [--smoke-test] [--init-mode INIT_MODE] [-v]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -56,7 +57,7 @@ optional arguments:
                         the number of points with which to discretize the objective function
   -N N                  the number of initialization points
   -q BATCH_SIZE, --batch-size BATCH_SIZE
-  -T T                  the number iterations to perform optimization
+  -T T                  the number of iterations to perform optimization
   -R REPEATS, --repeats REPEATS
                         the number of repetitions to perform. If not specified, then collate.py must be run afterwards for further analysis
   -ds DISCRETIZATION_SEED, --discretization-seed DISCRETIZATION_SEED
@@ -65,9 +66,9 @@ optional arguments:
   --k-or-threshold K_OR_THRESHOLD
                         the rank of the predictions (int) or absolute threshold (float) to use when determing what constitutes a predicted hit
   --use-observed-threshold
-                        calculate the hit threshold for pruning from the k-th best observation, rather than the k-th best predicted mean
+                        if using rank-based hit thresholding, calculate the threshold from the k-th best observation, rather than the k-th best predicted mean
   -g GAMMA, --gamma GAMMA
-                        the amount by which to scale the variance estimates
+                        the amount by which to scale the predicted variances
   --output-dir OUTPUT_DIR
                         the directory under which to save the outputs
   --smoke-test
@@ -81,7 +82,6 @@ If a value for `R` was provided, then the files will be inverted: there will be 
 # Reproducing Data
 
 ## Experiments
-
 The three sets of experiments were run like so:
 1. general regret plots: `boip -o OBJECTIVE -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025`
 1. `gamma` sweep:  `boip -o michalewicz -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025 --gamma GAMMA`, where `GAMMA` was either `0.5`, `1.0`, or `2.0` (*note*: the `michalewicz` run from above is equivalent to setting `gamma` equal to `1.0`)
@@ -89,19 +89,15 @@ The three sets of experiments were run like so:
 
 the `--output-dir` argument for each run was of the form `path/to/OBJECTIVE/rep-R`, where `R` is the number of the given repetition. 100 repititions were performed for each run (using SLURM to maintain sanity.)
 
-After each set of runs was complete, the runs were collated: `python scripts/collate.py path/to/OBJECTIVE`. You can optionally run this script with the `--clean` flag to consolidate your directory structure by deleting the individual run subdirectories (no information is lost as all runs are stored in the resulting array). However, you can't rerun the script with new data after `clean`ing, i.e., perform additional runs and stack them onto the `collate`d results.
+## Processing and organizing data
+After each set of runs was complete, the runs were collated: `python scripts/collate.py --parent-dir path/to/OBJECTIVE`
 
+You can optionally run this script with the `--clean` flag to consolidate your directory structure by deleting the individual run subdirectories (no information is lost as all runs are stored in the resulting array). However, you can't rerun the script with new data after `clean`ing, i.e., perform additional runs and stack them onto the `collate`d results.
 
-## Processing data
-After each set of runs was complete, the runs were collated:
-```
-python scripts/collate.py --parent-dir path/to/OBJECTIVE
-```
-you can optionally run this script with the `--clean` flag to consolidate your directory structure by deleting the individual run subdirectories (no information is lost as all runs are stored in the resulting array). However, you can't rerun the script with new data after `clean`ing, i.e., perform additional runs and stack them onto the `collate`d results.
+To create the figures using either the figures [noteboook](notebooks/figs.ipynb) or [script](scripts/figures.py), the processed data should be organized like the [data](data/) directory. That is, processed data should generally be organized under a directory with the name of the objective to which the data corresponds. The exception to this is `gamma` sweep data, which should all be organized under some grandparent directory, e.g., `gamma-sweep`, and then each directory should be the value of `gamma` to which the data corresponds.
 
 ## Figures
-
-See the [figures noteboook](notebooks/figs.ipynb) for details
+See the [noteboook](notebooks/figs.ipynb) or [script](scripts/figures.py) for details
 
 # Citation
 
