@@ -2,6 +2,7 @@
 branch = true
 
 omit =
+    boip/_version.py
     boip/objectives/gsobol.py
     boip/objectives/cosines.py
     boip/optimize.py

@@ -41,7 +41,6 @@ def prune(
     E_opt : Tensor
         the total expected number of optima pruned
     """
-
     model.eval()
 
     with torch.no_grad():
