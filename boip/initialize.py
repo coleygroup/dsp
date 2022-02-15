@@ -1,6 +1,5 @@
 from typing import Optional
 
-from botorch.test_functions.base import BaseTestProblem
 from scipy.stats import qmc
 import torch
 from torch import Tensor
