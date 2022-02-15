@@ -14,5 +14,5 @@ If there are open questions about implementation strategy or scope of the PR, in
 If appropriate, please tag them here and include a quick summary
 
 ## checklist
-- [ ] linted with flake8?
-- [ ] (if appropriate) unit tests added?
+- [ ] linted with black: `black boip -t py38 -l 100 --skip-magic-trailing-comma`
+- [ ] (if appropriate) unit tests added: `pytest -v`

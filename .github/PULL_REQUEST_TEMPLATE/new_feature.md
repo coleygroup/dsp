@@ -11,5 +11,5 @@ Include some (pseudo)code containing the new workflow that this PR will (seek to
 If there are open questions about implementation strategy or scope of the PR, include them here
 
 ## checklist
-- [ ] linted with flake8?
-- [ ] appropriate unit tests added?
+- [ ] linted with black: `black boip -t py38 -l 100 --skip-magic-trailing-comma`
+- [ ] (if appropriate) unit tests added: `pytest -v`
