@@ -6,7 +6,6 @@ import torch
 from torch import Tensor
 
 
-
 from boip.utils import AutoName
 
 
