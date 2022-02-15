@@ -64,8 +64,8 @@ optional arguments:
   -p PROB, --prob PROB  the minimum hit probability needed to retain a given point during pruning
   --k-or-threshold K_OR_THRESHOLD
                         the rank of the predictions (int) or absolute threshold (float) to use when determing what constitutes a predicted hit
-  --use-observed-rank
-                        if using rank-based hit thresholding, calculate the threshold from the k-th best observation, rather than the k-th best predicted mean
+  --use-observed-threshold
+                        calculate the hit threshold for pruning from the k-th best observation, rather than the k-th best predicted mean
   -g GAMMA, --gamma GAMMA
                         the amount by which to scale the variance estimates
   --output-dir OUTPUT_DIR
@@ -82,11 +82,14 @@ If a value for `R` was provided, then the files will be inverted: there will be 
 
 ## Experiments
 
-Experiments for each objective were run like so:
-```
-boip -o OBJECTIVE -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025
-```
-the `--output-dir` argument for each run was of the form `path/to/OBJECTIVE/rep-I`, where `I` is the number of the given repetition. 100 repititions were performed for each run (using SLURM to maintain sanity.)
+The three sets of experiments were run like so:
+1. general regret plots: `boip -o OBJECTIVE -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025`
+1. `gamma` sweep:  `boip -o michalewicz -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025 --gamma GAMMA`, where `GAMMA` was either `0.5`, `1.0`, or `2.0` (*note*: the `michalewicz` run from above is equivalent to setting `gamma` equal to `1.0`)
+1. observed hit thresholding:  `boip -o michalewicz -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025  --use-observed-threshold`
+
+the `--output-dir` argument for each run was of the form `path/to/OBJECTIVE/rep-R`, where `R` is the number of the given repetition. 100 repititions were performed for each run (using SLURM to maintain sanity.)
+
+After each set of runs was complete, the runs were collated: `python scripts/collate.py path/to/OBJECTIVE`. You can optionally run this script with the `--clean` flag to consolidate your directory structure by deleting the individual run subdirectories (no information is lost as all runs are stored in the resulting array). However, you can't rerun the script with new data after `clean`ing, i.e., perform additional runs and stack them onto the `collate`d results.
 
 
 ## Processing data
@@ -102,6 +105,6 @@ See the [figures noteboook](notebooks/figs.ipynb) for details
 
 # Citation
 
-If you found this repository or its ideas even remotely useful in the course of your own work, you can cite it as follows:
+If you found the code or the ideas in this repository even remotely useful in the course of your own work, you can cite it as follows:
 
 **COMING SOON**
