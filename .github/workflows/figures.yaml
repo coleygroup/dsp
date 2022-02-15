@@ -7,6 +7,7 @@ on:
     paths:
       - "data/**"
       - "scripts/figures.py"
+      - "scripts/make_all_figs.sh"
 
 jobs:
   figures:
@@ -52,8 +53,8 @@ jobs:
         run: |
           bash ./scripts/make_all_figs.sh
       
-      - name: check status
-        run: git status
+      - name: pull
+        run: git pull
 
       - name: Commit and Push
         run: |

@@ -55,4 +55,13 @@ jobs:
       - name: run tests
         shell: bash -l {0}
         run: |
-          pytest -v --color=yes
+          pytest -v --color=yes --cov-report=xml
+
+      - name: upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          env_vars: OS,PYTHON
+          fail_ci_if_error: true
+          flags: unittests
+          verbose: true

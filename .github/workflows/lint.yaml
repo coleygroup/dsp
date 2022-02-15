@@ -23,8 +23,8 @@ jobs:
           src: "./boip"
           options: "-l 100 -t py38 --skip-magic-trailing-comma"
 
-      - name: check status
-        run: git status
+      - name: pull
+        run: git pull
 
       - name: commit and push
         run: |
