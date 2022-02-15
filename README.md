@@ -97,7 +97,7 @@ You can optionally run this script with the `--clean` flag to consolidate your d
 To create the figures using either the figures [noteboook](notebooks/figs.ipynb) or [script](scripts/figures.py), the processed data should be organized like the [data](data/) directory. That is, processed data should generally be organized under a directory with the name of the objective to which the data corresponds. The exception to this is `gamma` sweep data, which should all be organized under some grandparent directory, e.g., `gamma-sweep`, and then each directory should be the value of `gamma` to which the data corresponds.
 
 ## Figures
-See the [noteboook](notebooks/figs.ipynb) or [script](scripts/figures.py) for details
+See the [noteboook](notebooks/figs.ipynb) or [script](scripts/figures.py) for details. Note that the figures script has a few variables hard-coded in: the design space space size, the discretization seed, the number of iterations, the batch size, and the number of iterations. If you run your experiments with non-default values (as defined above,) then you'll have to edit them in the script.
 
 # Citation
 
