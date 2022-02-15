@@ -16,10 +16,7 @@ class InitMode(AutoName):
 
 
 def initialize(
-    N: int,
-    choices: Tensor,
-    seed: Optional[int] = None,
-    init_mode: InitMode = InitMode.UNIFORM,
+    N: int, choices: Tensor, seed: Optional[int] = None, init_mode: InitMode = InitMode.UNIFORM
 ) -> Tensor:
     """select N points from choices with the given seed and mode and return their indices
 
