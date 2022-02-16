@@ -18,6 +18,7 @@ import boip
 sns.set_theme("talk", "white")
 sns.set_palette("dark")
 
+PANEL_LABEL_PROPS = dict(weight="bold", loc="left", fontsize="large")
 
 def plot_surface_discrete(
     ax,
@@ -147,20 +148,25 @@ def add_regret_trace(ax, R: np.ndarray, x, label: str):
     return handles
 
 
-def plot_IR(ax, Y_full: np.ndarray, Y_prune: np.ndarray, N: int, optima: np.ndarray, obj, choices):
+def plot_IR(
+    ax, Y_np: np.ndarray, Y_p: np.ndarray, n_min: int, n_max: int, optima: np.ndarray, obj, choices
+):
     """plot the immediate regret curves of the dataset onto axis ax
 
     Parameters
     ----------
     ax
         the axis on which to plot the curves
-    Ys : Iterable[np.ndarray]
-        an iterable of `r x t` arrays, where each entry is the observation made at
-        iteration t of trial r for a specific dataset
+    Y_np : np.ndarray
+        an `R x N` array, where each entry is the `n`th observation made for trial r of non-pruning
+    Y_p : np.ndarray
+        an `R x N` array, where each entry is the `n`th observation made for trial r of pruning
     obj : BaseTestProblem
         the objective these datasets are attempting to minimize
-    N : int
+    n : int
         the number of initial random observations
+    n_max : int
+        the maximum number of observations to plot
     labels : Optional[Iterable[str]]
         the label of each trace
     optima : np.ndarray
@@ -172,15 +178,15 @@ def plot_IR(ax, Y_full: np.ndarray, Y_prune: np.ndarray, N: int, optima: np.ndar
         the artists corresponding to the plotted curves
     """
     handles = []
-    x = np.arange(Y_prune.shape[1])[N:]
+    x = np.arange(n_max)[n_min:] + 1
 
-    R = immediate_regret(Y_full, optima)[:, N : N + len(x)]
+    R = immediate_regret(Y_np, optima)[:, n_min:n_max]
     handles.append(add_regret_trace(ax, R, x, "no pruning"))
 
-    R = immediate_regret(Y_prune, optima)[:, N:]
+    R = immediate_regret(Y_p, optima)[:, n_min:n_max]
     handles.append(add_regret_trace(ax, R, x, "pruning"))
 
-    R = gen_R_random(obj, *Y_prune.shape, optima, choices)[:, N:]
+    R = gen_R_random(obj, *Y_p.shape, optima, choices)[:, n_min:n_max]
     r = R.mean(0)
     r_se = stats.sem(R, 0)
 
@@ -405,7 +411,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
     Y = -np.load(f"{npzdir}/Y.npz")["PRUNE"][REP]
     H = np.load(f"{npzdir}/H.npz")["PRUNE"][REP]
 
-    its = [0, 1, 5, 10, 20]
+    its = [0, 1, 5, 15, 30]
     for i, it in zip(range(5), its):
         ax = fig.add_subplot(gs0[i])
 
@@ -441,21 +447,24 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
     )
     cbar.ax.tick_params("x", direction="inout", pad=6, width=2.5, grid_alpha=0.5)
 
-    axsTop[0].set_title("A", weight="bold", loc="left", fontsize="large")
+    axsTop[0].set_title("A", **PANEL_LABEL_PROPS)
 
     # ---------------------------------------- PANEL B ----------------------------------------#
 
     ax = fig.add_subplot(gs1[0])
 
     Y_npz = np.load(f"{npzdir}/Y.npz")
-    Y_full = Y_npz["FULL"]
-    Y_prune = Y_npz["PRUNE"]
+    Y_np = Y_npz["FULL"]
+    Y_p = Y_npz["PRUNE"]
     H = np.load(f"{npzdir}/H.npz")["PRUNE"]
 
-    handles = plot_IR(ax, Y_full, Y_prune, n, -optima_ys, obj, choices)
+    T_mean = H[:, :, 0].max(1).mean(dtype=int)
+
+    n_max = n + T_mean * q
+    handles = plot_IR(ax, Y_np, Y_p, n, n_max, -optima_ys, obj, choices)
 
     ax_twin = ax.twinx()
-    handles.append(plot_size_H(ax_twin, H, q, Y_prune.shape[1] // q))
+    handles.append(plot_size_H(ax_twin, H, q, T_mean))
 
     ax.xaxis.set_major_locator(MultipleLocator(100))
     ax.xaxis.set_minor_locator(MultipleLocator(50))
@@ -467,16 +476,15 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
     ax.set_ylabel("Fraction of Top-10 Identified", fontsize=16)
     ax_twin.set_ylabel("Relative Input Space Size", fontsize=16)
 
+    ax.set_ylim(-0.05, 1.05)
     ax_twin.set_ylim(ax.get_ylim())
+    
     ax.grid(True, axis="y", ls="--")
-
-    ax.legend(
-        handles=handles, bbox_transform=ax.transAxes, bbox_to_anchor=[0.33, 1], loc="upper center"
-    )
+    ax.legend(handles=handles)
 
     axsBot.append(ax)
 
-    axsBot[0].set_title("B", weight="bold", loc="left", fontsize="large")
+    axsBot[0].set_title("B", **PANEL_LABEL_PROPS)
 
     # ---------------------------------------- PANEL C ----------------------------------------#
 
@@ -491,10 +499,10 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
         gamma = float(npzdir.name)
         label = rf"${gamma}\,\hat\sigma^2$"
 
-        T = H[:, :, 0].max(1).mean(dtype=int)
+        T_mean = H[:, :, 0].max(1).mean(dtype=int)
 
-        t = np.arange(T + 1)
-        F_nr = f_hits_pruned(H[:, :, 1], optima_idxs, T)
+        t = np.arange(T_mean + 1)
+        F_nr = f_hits_pruned(H[:, :, 1], optima_idxs, T_mean)
         F_nr_mean = F_nr.mean(0)
         F_nr_sem = stats.sem(F_nr, 0)
 
@@ -531,7 +539,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
 
     axsBot.append(ax)
 
-    axsBot[1].set_title("C", weight="bold", loc="left", fontsize="large")
+    axsBot[1].set_title("C", **PANEL_LABEL_PROPS)
 
     # -------------------------------------------------------------------------------------#
 
@@ -554,8 +562,8 @@ def surface_regret(npzdirs, outfile):
 
         # X_npz = np.load(f"{npzdir}/X.npz")
         Y_npz = np.load(f"{npzdir}/Y.npz")
-        Y_full = Y_npz["FULL"]
-        Y_prune = Y_npz["PRUNE"]
+        Y_np = Y_npz["FULL"]
+        Y_p = Y_npz["PRUNE"]
         H = np.load(f"{npzdir}/H.npz")["PRUNE"]
 
         y_all = obj(choices).numpy()
@@ -566,10 +574,10 @@ def surface_regret(npzdirs, outfile):
         plot_surface(axs[0][i], obj, optimal_choices)
 
         ax1 = axs[1][i]
-        handles = plot_IR(ax1, Y_full, Y_prune, n, optima, obj, choices)
+        handles = plot_IR(ax1, Y_np, Y_p, n, Y_p.shape[1], optima, obj, choices)
 
         ax2 = ax1.twinx()
-        handles.append(plot_size_H(ax2, H, q, Y_prune.shape[1] // q))
+        handles.append(plot_size_H(ax2, H, q, Y_p.shape[1] // q))
         axs_2.append(ax2)
 
         ax1.set_ylim(-0.05, 1.05)
@@ -580,7 +588,7 @@ def surface_regret(npzdirs, outfile):
         ax1.xaxis.set_minor_locator(MultipleLocator(100))
         ax1.tick_params(axis="x", which="both", direction="out", bottom=True)
 
-        axs[0][i].set_title(label, loc="left", weight="bold", fontsize="large")
+        axs[0][i].set_title(label, **PANEL_LABEL_PROPS)
 
     for ax1 in axs[1][1:]:
         ax1.sharey(axs[1][0])
@@ -617,7 +625,7 @@ def regret(npzdir, objective, outfile, all_traces: bool = False):
     optima = y_all[optimal_idxs]
 
     Y_npz = np.load(f"{npzdir}/Y.npz")
-    Y_f = Y_npz["FULL"]
+    Y_np = Y_npz["FULL"]
     Y_p = Y_npz["PRUNE"]
 
     if not all_traces:
@@ -625,7 +633,7 @@ def regret(npzdir, objective, outfile, all_traces: bool = False):
 
         H = np.load(f"{npzdir}/H.npz")["PRUNE"]
 
-        handles = plot_IR(ax, Y_f, Y_p, n, optima, obj, choices)
+        handles = plot_IR(ax, Y_np, Y_p, n, Y_p.shape[1], optima, obj, choices)
 
         ax_twin = ax.twinx()
         handles.append(plot_size_H(ax_twin, H, q, Y_p.shape[1] // q))
@@ -658,7 +666,7 @@ def regret(npzdir, objective, outfile, all_traces: bool = False):
 
         x = np.arange(Y_p.shape[1])[n:]
 
-        Ys = [Y_f, Y_p]
+        Ys = [Y_np, Y_p]
         for ax, Y, c in zip(axs, Ys, sns.color_palette("dark", len(Ys))):
             plot_IR_all(ax, x, Y, n, optima, c)
 
@@ -704,13 +712,15 @@ def gamma_perf(gamma_dir, objective, outfile):
         ax.set_title(title)
 
         Y_npz = np.load(f"{npzdir}/Y.npz")
+        Y_np = Y_npz["FULL"]
+        Y_p = Y_npz["PRUNE"]
         H = np.load(f"{npzdir}/H.npz")["PRUNE"]
 
         y_all = obj(choices).numpy()
         optimal_idxs = np.argpartition(y_all, -k)[-k:]
         optima = y_all[optimal_idxs]
 
-        handles = plot_IR(ax, Y_npz["FULL"], Y_npz["PRUNE"], n, optima, obj, choices)
+        handles = plot_IR(ax, Y_np, Y_p, n, Y_p.shape[1], optima, obj, choices)
 
         ax2 = ax.twinx()
         handles.append(plot_size_H(ax2, H, q, H.max() + 1))

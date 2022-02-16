@@ -34,7 +34,7 @@ jobs:
           show-channel-urls: true
 
       - name: install package
-        run: pip install -e . [plotting] --no-deps
+        run: pip install -e .[plotting] --no-deps
       
       - name: conda list
         run: conda list
