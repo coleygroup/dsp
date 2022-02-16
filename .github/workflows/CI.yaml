@@ -44,16 +44,13 @@ jobs:
           show-channel-urls: true
 
       - name: install package
-        shell: bash -l {0}
         run: |
-          pip install . --no-deps
+          pip install .[test] --no-deps
           
       - name: conda list
-        shell: bash -l {0}
         run: conda list
 
       - name: run tests
-        shell: bash -l {0}
         run: |
           pytest -v --color=yes --cov-report=xml
 
