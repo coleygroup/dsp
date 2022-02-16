@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - "main"
-    paths:
-      - "data/**"
-      - "scripts/figures.py"
-      - "scripts/make_all_figs.sh"
+    # paths:
+    #   - "data/**"
+    #   - "scripts/figures.py"
+    #   - "scripts/make_all_figs.sh"
 
 jobs:
   figures:
@@ -25,13 +25,10 @@ jobs:
       - name: setup conda
         uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: 3.8
+          activate-environment: boip
           environment-file: ./.github/test-env.yml
-          channels: conda-forge,defaults
-          activate-environment: test
           auto-update-conda: false
           auto-activate-base: false
-          show-channel-urls: true
 
       - name: install package
         run: |

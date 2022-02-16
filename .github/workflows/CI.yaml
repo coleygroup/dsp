@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - "main"
-    paths:
-      - "boip/**"
-      - "test/**"
+    # paths:
+    #   - "boip/**"
+    #   - "test/**"
   pull_request:
     branches:
       - "main"
@@ -35,21 +35,19 @@ jobs:
       - name: setup conda
         uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          activate-environment: boip
           environment-file: ./.github/test-env.yml
-          channels: conda-forge,defaults
-          activate-environment: test
+          python-version: ${{ matrix.python-version }}
           auto-update-conda: false
           auto-activate-base: false
-          show-channel-urls: true
+
+      - name: conda list
+        run: conda list
 
       - name: install package
         run: |
           pip install pytest-cov pytest
           pip install .[test] --no-deps
-          
-      - name: conda list
-        run: conda list
 
       - name: run tests
         run: |
