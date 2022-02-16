@@ -29,13 +29,13 @@ This repository contains code for replicating the data and figures of the synthe
 
 ## Installation
 1. `conda env create -f  `[`enviroment.yml`](./environment.yml)`
-1. `pip install -e .`
+1. `pip install .`
 
 # Testing
 
 ## Unit Tests
 If BOIP was installed properly, all unit tests should pass. To run them:
-1. install pytest: `pip install pytest`
+1. install the package with additional testing requirements: `pip install .[test]`
 1. run the tests: `pytest`
 
 ## Integration Testing
@@ -74,7 +74,6 @@ optional arguments:
   --smoke-test
   -v, --verbose
 ```
-
 The output directory will have a log file containing the parameters of the given and 3 NPZ files. If no value for `R` was provided, then the 3 files will `full.npz`, `prune.npz`, and `reacq.npz`, each with keys `"X"`, `"Y"`, and `"H"`. The `X` array corresponds to the points sampled (in order) for a given optimization setting: no pruning, pruning + no reacquisition, or pruning + reacquisition. The `Y` array is parallel to the `X` array and corresponds to the objective values of the given point. The `H` array is an array of shape `N x 2` and contains the iteration of when the given point was either acquired (0th column) or pruned (1st column.) Note that in the case of reacquisition, the 0th column of the `H` array represents only the *most recent* iteration of when that point was acquired.
 
 If a value for `R` was provided, then the files will be inverted: there will be `X.npz`, `Y.npz`, and `H.npz`, each containing keys `"FULL"`, `"PRUNE"`, and `"REACQ"`. Each array is equivalent calling `np.stack` on the corresponding arrays from multiple, individual runs.

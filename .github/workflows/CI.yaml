@@ -46,6 +46,7 @@ jobs:
       - name: install package
         run: |
           pip install .[test] --no-deps
+          pip install pytest-cov
           
       - name: conda list
         run: conda list

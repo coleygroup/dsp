@@ -14,6 +14,5 @@ dependencies:
   - pytorch::cpuonly
   - pip:
     - numpy
-    - pytest
-    - pytest-cov
+    - scipy
     - tqdm
