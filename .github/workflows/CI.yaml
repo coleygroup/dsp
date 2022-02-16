@@ -40,9 +40,6 @@ jobs:
           auto-update-conda: false
           auto-activate-base: false
 
-      - name: activate conda
-        run: conda activate boip
-
       - name: install package
         shell: bash -l {0}
         run: |
@@ -50,11 +47,11 @@ jobs:
           pip install .[test] --no-deps
 
       - name: conda list
-        # shell: bash -l {0}
+        shell: bash -l {0}
         run: conda list
 
       - name: run tests
-        # shell: bash -l {0}
+        shell: bash -l {0}
         run: pytest -v --color=yes --cov-report=xml
 
       - name: upload coverage to Codecov
