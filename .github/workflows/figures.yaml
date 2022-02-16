@@ -34,7 +34,9 @@ jobs:
           show-channel-urls: true
 
       - name: install package
-        run: pip install .[plot] --no-deps
+        run: |
+          pip install matplotlib seaborn
+          pip install . --no-deps
       
       - name: conda list
         run: conda list

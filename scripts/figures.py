@@ -805,6 +805,5 @@ def main():
         gamma_perf(args.gamma_dir, args.objective, args.outfile)
 
 
-
 if __name__ == "__main__":
     main()

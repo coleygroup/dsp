@@ -14,6 +14,7 @@ class InitMode(AutoName):
     UNIFORM = auto()
 
 
+
 def initialize(
     N: int, choices: Tensor, seed: Optional[int] = None, init_mode: InitMode = InitMode.UNIFORM
 ) -> Tensor:
