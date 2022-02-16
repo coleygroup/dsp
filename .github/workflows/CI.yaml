@@ -40,7 +40,6 @@ jobs:
           auto-update-conda: false
           auto-activate-base: false
 
-
       - name: install package
         shell: bash -l {0}
         run: |
@@ -50,10 +49,10 @@ jobs:
       - name: conda list
         shell: bash -l {0}
         run: conda list
-        
+
       - name: run tests
-        run: |
-          pytest -v --color=yes --cov-report=xml
+        shell: bash -l {0}
+        run: pytest -v --color=yes --cov-report=xml
 
       - name: upload coverage to Codecov
         uses: codecov/codecov-action@v2

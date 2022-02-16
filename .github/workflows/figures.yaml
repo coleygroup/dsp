@@ -34,7 +34,7 @@ jobs:
         shell: bash -l {0}
         run: |
           pip install matplotlib seaborn
-          pip install . --no-deps
+          pip install .[plot] --no-deps
       
       - name: conda list
         shell: bash -l {0}
@@ -42,11 +42,9 @@ jobs:
 
       - name: make figures
         shell: bash -l {0}
-        run: |
-          bash ./scripts/make_all_figs.sh ./figures/github
+        run: bash ./scripts/make_all_figs.sh ./figures/github
       
       - name: commit and push
-        # shell: bash -l {0}
         run: |
           git pull
           git config user.name "github-actions[bot]"
