@@ -26,7 +26,6 @@ jobs:
       - uses: actions/checkout@v2
       
       - name: build info
-        shell: bash
         run: |
           uname -a
           df -h
@@ -41,14 +40,17 @@ jobs:
           auto-update-conda: false
           auto-activate-base: false
 
-      - name: conda list
-        run: conda list
 
       - name: install package
+        shell: bash -l {0}
         run: |
           pip install pytest-cov pytest
           pip install .[test] --no-deps
 
+      - name: conda list
+        shell: bash -l {0}
+        run: conda list
+        
       - name: run tests
         run: |
           pytest -v --color=yes --cov-report=xml
