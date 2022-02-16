@@ -357,13 +357,7 @@ def plot_IR_all(ax, x: np.ndarray, Y: np.ndarray, n: int, optima: np.ndarray, co
         path_effects=[pe.Stroke(linewidth=5, foreground="k"), pe.Normal()],
     )
     for r in R:
-        ax.plot(
-            x,
-            r,
-            color=color,
-            lw=1.5,
-            alpha=0.25
-        )
+        ax.plot(x, r, color=color, lw=1.5, alpha=0.25)
 
     ax.grid(True, axis="y", ls="--")
     ax.tick_params(axis="x", which="both", direction="out", bottom=True)
@@ -382,7 +376,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
     axsTop = []
     axsBot = []
 
-    #----------------------------------------- SETUP -----------------------------------------#
+    # ----------------------------------------- SETUP -----------------------------------------#
 
     N = 10000
     ds = 42
@@ -399,7 +393,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
     optima_xs = choices[optima_idxs].numpy()
     optima_ys = y_all[optima_idxs]
 
-    #---------------------------------------- PANEL A ----------------------------------------#
+    # ---------------------------------------- PANEL A ----------------------------------------#
 
     xmin, ymin = choices.min(0)[0].numpy()
     xmax, ymax = choices.max(0)[0].numpy()
@@ -449,7 +443,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
 
     axsTop[0].set_title("A", weight="bold", loc="left", fontsize="large")
 
-    #---------------------------------------- PANEL B ----------------------------------------#
+    # ---------------------------------------- PANEL B ----------------------------------------#
 
     ax = fig.add_subplot(gs1[0])
 
@@ -484,12 +478,9 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
 
     axsBot[0].set_title("B", weight="bold", loc="left", fontsize="large")
 
-    #---------------------------------------- PANEL C ----------------------------------------#
+    # ---------------------------------------- PANEL C ----------------------------------------#
 
     ax = fig.add_subplot(gs1[1])
-
-    T = 40
-    t = np.arange(T + 1)
 
     npzdirs = sorted(gamma_dir.iterdir(), key=lambda d: float(d.name))
     palette = sns.color_palette("magma", len(npzdirs))
@@ -500,6 +491,9 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
         gamma = float(npzdir.name)
         label = rf"${gamma}\,\hat\sigma^2$"
 
+        T = H[:, :, 0].max(1).mean(dtype=int)
+
+        t = np.arange(T + 1)
         F_nr = f_hits_pruned(H[:, :, 1], optima_idxs, T)
         F_nr_mean = F_nr.mean(0)
         F_nr_sem = stats.sem(F_nr, 0)
@@ -539,7 +533,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
 
     axsBot[1].set_title("C", weight="bold", loc="left", fontsize="large")
 
-    #-------------------------------------------------------------------------------------#
+    # -------------------------------------------------------------------------------------#
 
     fig.savefig(outfile, dpi=400, bbox_inches="tight")
 
@@ -650,7 +644,7 @@ def regret(npzdir, objective, outfile, all_traces: bool = False):
             handles=handles,
             loc="upper center",
             bbox_transform=ax.transAxes,
-            bbox_to_anchor=[0.33, 1]
+            bbox_to_anchor=[0.33, 1],
         )
 
         ax.set_xlabel("Objective Evaluations")
@@ -658,7 +652,7 @@ def regret(npzdir, objective, outfile, all_traces: bool = False):
         ax_twin.set_ylabel("Relative Input Space Size")
 
         fig.tight_layout()
-        
+
     else:
         fig, axs = plt.subplots(2, 1, figsize=(6.5, 12), sharey=True, sharex=True)
 
@@ -683,6 +677,7 @@ def regret(npzdir, objective, outfile, all_traces: bool = False):
         fig.tight_layout()
 
     fig.savefig(outfile, dpi=200, bbox_inches="tight")
+
 
 def gamma_perf(gamma_dir, objective, outfile):
     fig, axs = plt.subplots(1, 3, figsize=(6 * 3, 6), sharey=True)
@@ -768,7 +763,9 @@ def main():
         "npzdir", type=Path, help="the directory containing the X, Y, and H .npz files"
     )
     regret_parser.add_argument("objective", help="the objective function used for the runs")
-    regret_parser.add_argument("--all-traces", action="store_true", help="plot each indivudal trace")
+    regret_parser.add_argument(
+        "--all-traces", action="store_true", help="plot each indivudal trace"
+    )
     regret_parser.add_argument("-o", "--outfile", type=Path)
 
     gamma_parser = subparsers.add_parser("gamma-perf", help="gamma sweep multi-panel figure")
