@@ -41,9 +41,13 @@ def plot_surface_discrete(
     y : np.ndarray
         a vector parallel to choices that contains the y-value for corresponding to each point
         point in the design space
-    hits: np.ndarray
+    zmin : float
+        _description_
+    zmax : float
+        _description_
+    hits : np.ndarray
     title : Optional[str], default=None
-        the title to use for the plot
+        the title to use for the plot        
 
     Returns
     -------
@@ -108,17 +112,18 @@ def immediate_regret(Y: np.ndarray, optima: np.ndarray) -> np.ndarray:
     Parameters
     ----------
     Y : np.ndarray
-        an `r x t` array, where r is the number of repeats and t is the number of observations made
-        for a given trial. Each entry is the observation made at iteration t
+        an `R x N` array, where R is the number of repeats and N is the number of observations made
+        for a given trial. An entry Y[r][n] corresponds the n-th observation of the r-th trial
     optima : np.ndarray
         a length `k` vector containing the optima of the objective function
 
     Returns
     -------
     np.ndarray
-        an `r x t` array containing the immediate regret at the given iteration, where r is number of repititions and t is number of iterations. "Immediate regret" is formulated as the
-        fraction of the total number of optima found. NOTE: it is possible for there to be
-        degenerate hits
+        an `R x N` where r is number of repititions and N is the number of observations.
+        An entry A[r][n] corresponds to the immediate regret after the n-th observation of the r-th 
+        trial. "Immediate regret" is formulated as the fraction of the total number of optima 
+        found. NOTE: it is possible for there to be degenerate hits
     """
     k = len(optima)
     Y = np.nan_to_num(Y, nan=-np.inf)
@@ -217,6 +222,8 @@ def gen_R_random(obj, r: int, n: int, optima: Tensor, choices: Tensor):
         the number of repeats
     n : int
         the number of samples to take
+    choices : Tensor
+        the possible choices
 
     Returns
     -------
@@ -243,11 +250,9 @@ def plot_surface(
     ax
         the axis onto which the level surface should be plotted
     obj : BaseTestProblem
-        the objective to which the level surface corresponds
-    Xs : Iterable[np.ndarray]
-        an iterable of `r x t x d` arrays. Where each entry in each array corresponds to the
-        d-dimensional point acquired at iteration t of trial r
+        the objective to which the surface corresponds
     optimal_choices: np.ndarray
+        the locations of the optimal choices in the design space
     title : Optional[str], default=None
         the title to use for the plot. If None, use the name of the objective function
 
@@ -276,7 +281,7 @@ def plot_surface(
     return ax
 
 
-def plot_size_H(ax, H, q: int, T: int):
+def plot_size_H(ax, H: np.ndarray, q: int, T: int):
     """plot the input space size using the pruning history
 
     Parameters
@@ -284,10 +289,10 @@ def plot_size_H(ax, H, q: int, T: int):
     ax
         the axis on which to plot
     H : np.ndarray
-        an `r x n x 2` array containing the acquisition and pruning history of each point, where r
-        is the number of repeats and n is the total input space size. The 0th value of each entry is the iteration at
-        which the given point was pruned from the input space, with a -1 indicating that the
-        point was never pruned
+        an `R x C` array containing the acquisition and pruning history of each point in the design 
+        space, where R is the number of repeats and C is the total design space size. The 0th value 
+        of each entry is the iteration at which the given point was pruned from the input space, 
+        with a -1 indicating that the point was never pruned
     q : int
         the batch/initialization size
     T : int
@@ -343,7 +348,7 @@ def plot_IR_all(ax, x: np.ndarray, Y: np.ndarray, n: int, optima: np.ndarray, co
     Y : np.ndarray
         an iterable of `r x t` array, where each entry is the observation made at
         iteration t of trial r for a specific dataset
-     : int
+    n : int
         the number of initial random observations
     optima : np.ndarray
         the optimal objective values
