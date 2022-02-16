@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - "main"
-    # paths:
-    #   - "data/**"
-    #   - "scripts/figures.py"
-    #   - "scripts/make_all_figs.sh"
+    paths:
+      - "data/**"
+      - "scripts/figures.py"
+      - "scripts/make_all_figs.sh"
 
 jobs:
   figures:
