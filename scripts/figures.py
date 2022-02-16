@@ -20,6 +20,7 @@ sns.set_palette("dark")
 
 PANEL_LABEL_PROPS = dict(weight="bold", loc="left", fontsize="large")
 
+
 def plot_surface_discrete(
     ax,
     choices: np.ndarray,
@@ -478,7 +479,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
 
     ax.set_ylim(-0.05, 1.05)
     ax_twin.set_ylim(ax.get_ylim())
-    
+
     ax.grid(True, axis="y", ls="--")
     ax.legend(handles=handles)
 
