@@ -130,7 +130,6 @@ dmypy.json
 .pyre/
 
 figures
-scripts
 slurm
 *.np[z,y]
 *.txt
