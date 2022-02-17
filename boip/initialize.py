@@ -5,14 +5,12 @@ from scipy.stats import qmc
 import torch
 from torch import Tensor
 
-
 from boip.utils import AutoName
 
 
 class InitMode(AutoName):
     LHC = auto()
     UNIFORM = auto()
-
 
 
 def initialize(
