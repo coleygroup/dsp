@@ -43,7 +43,7 @@ jobs:
       - name: install package
         shell: bash -l {0}
         run: |
-          pip install coverage[toml] pytest-cov pytest
+          pip install pytest-cov pytest
           pip install .[test] --no-deps
 
       - name: conda list
@@ -52,7 +52,7 @@ jobs:
 
       - name: run tests
         shell: bash -l {0}
-        run: pytest --color=yes --cov=boip --cov-report=xml
+        run: pytest --color=yes --cov-report=xml
 
       - name: upload coverage to Codecov
         uses: codecov/codecov-action@v2
