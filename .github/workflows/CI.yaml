@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - "main"
-    paths:
-      - "boip/**"
-      - "test/**"
+    # paths:
+    #   - "boip/**"
+    #   - "test/**"
   pull_request:
     branches:
       - "main"
@@ -43,7 +43,7 @@ jobs:
       - name: install package
         shell: bash -l {0}
         run: |
-          pip install pytest-cov pytest
+          pip install coverage[toml] pytest-cov pytest
           pip install .[test] --no-deps
 
       - name: conda list
@@ -52,7 +52,7 @@ jobs:
 
       - name: run tests
         shell: bash -l {0}
-        run: pytest -v --color=yes --cov-report=xml
+        run: pytest --color=yes --cov-report=xml
 
       - name: upload coverage to Codecov
         uses: codecov/codecov-action@v2
