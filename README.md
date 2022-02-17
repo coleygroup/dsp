@@ -93,10 +93,27 @@ After each set of runs was complete, the runs were collated: `python scripts/col
 
 You can optionally run this script with the `--clean` flag to consolidate your directory structure by deleting the individual run subdirectories (no information is lost as all runs are stored in the resulting array). However, you can't rerun the script with new data after `clean`ing, i.e., perform additional runs and stack them onto the `collate`d results.
 
-To create the figures using either the figures [noteboook](notebooks/figs.ipynb) or [script](scripts/figures.py), the processed data should be organized like the [data](data/) directory. That is, processed data should generally be organized under a directory with the name of the objective to which the data corresponds. The exception to this is `gamma` sweep data, which should all be organized under some grandparent directory, e.g., `gamma-sweep`, and then each directory should be the value of `gamma` to which the data corresponds.
+To create the figures using the [figures script](scripts/figures.py), the processed data should be organized like the [data](./data) directory. That is, processed data should generally be organized under a directory with the name of the objective to which the data corresponds. The exception to this is `gamma` sweep data, which should all be organized under some grandparent directory, e.g., `gamma-sweep`, and then each directory should be the value of `gamma` to which the data corresponds.
 
 ## Figures
-See the [noteboook](notebooks/figs.ipynb) or [script](scripts/figures.py) for details. Note that the figures script has a few variables hard-coded in: the design space space size, the discretization seed, the number of iterations, the batch size, and the number of iterations. If you run your experiments with non-default values (as defined above,) then you'll have to edit them in the script.
+Figures used in the manuscript were generated via the [figures script](./scripts/figures.py). The script may be run like so:
+```
+usage: figures.py [-h] {michalewicz,combo,regret,gamma-perf,fpr} ...
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+figure:
+  the figure you would like to make
+
+  {michalewicz,combo,regret,gamma-perf,fpr}
+    michalewicz         michalewicz multi-panel figure
+    combo               surface+regret multi-panel figure
+    regret              regret plot for a single objective
+    gamma-perf          gamma sweep multi-panel figure
+    fpr                 False pruning rate plot for a single objective
+```
+To see additional arguments needed for the corresponding figure, run the script with the desired `figure` followed by the `--help` flag. The data used to generate figures in the manuscript is located in the [data](./data) directory, and a sample script to generate a few of the figures is located [here](./scripts/make_all_figs.sh). Note that the script has a few variables hard-coded in: the design space space size, the discretization seed, the number of iterations, the batch size, and the number of iterations. If you run your experiments with non-default values (as defined above,) then you'll have to edit them in the script.
 
 # Citation
 
