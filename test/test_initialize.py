@@ -56,6 +56,7 @@ def test_init_LHC_no_seed(choices, m, _):
 
     assert not torch.equal(I, J)
 
+
 def test_init_LHC_seeded(choices, m, seed):
     I = initialize(m, choices, seed, InitMode.LHC)
     J = initialize(m, choices, seed, InitMode.LHC)

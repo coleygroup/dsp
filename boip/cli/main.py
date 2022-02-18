@@ -8,6 +8,17 @@ from tqdm import tqdm
 import boip
 from boip.cli.args import parse_args
 
+ART = [
+    "******************************************",
+    "*     ___      ___      ___       ___    *",
+    "*    | _ )    / _ \\    |_ _|     | _ \\   *",
+    "*    | _ \\   | (_) |    | |      |  _/   *",
+    "*    |___/    \\___/    |___|    _|_|_    *",
+    '*  _|"""""| _|"""""| _|"""""| _| """ |   *',
+    "*  \"`-0-0-' \"`-0-0-' \"`-0-0-' \"`-0-0-'   *",
+    "******************************************",
+]
+
 
 def collate_results(
     results: List[Tuple[Tensor, Tensor, Tensor]]
@@ -22,21 +33,11 @@ def collate_results(
 
 
 def main():
-    print(
-        '''\
-******************************************
-*     ___      ___      ___       ___    *
-*    | _ )    / _ \    |_ _|     | _ \   *
-*    | _ \   | (_) |    | |      |  _/   *
-*    |___/    \___/    |___|    _|_|_    *
-*  _|"""""| _|"""""| _|"""""| _| """ |   *
-*  "`-0-0-' "`-0-0-' "`-0-0-' "`-0-0-'   *
-******************************************
-'''
-    )
+    print("\n".join(ART))
+    print("boip will be run with the following arguments:")
     args = parse_args()
     for k, v in sorted(vars(args).items()):
-        print(f"{k}: {v}")
+        print(f"  {k}: {v}")
     print()
 
     if args.smoke_test:

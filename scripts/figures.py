@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 import string
-from typing import Optional, Tuple
+from typing import Optional
 
 from botorch.test_functions.base import BaseTestProblem
 from matplotlib import pyplot as plt, patheffects as pe
@@ -47,7 +47,7 @@ def plot_surface_discrete(
         _description_
     hits : np.ndarray
     title : Optional[str], default=None
-        the title to use for the plot        
+        the title to use for the plot
 
     Returns
     -------
@@ -121,8 +121,8 @@ def immediate_regret(Y: np.ndarray, optima: np.ndarray) -> np.ndarray:
     -------
     np.ndarray
         an `R x N` where r is number of repititions and N is the number of observations.
-        An entry A[r][n] corresponds to the immediate regret after the n-th observation of the r-th 
-        trial. "Immediate regret" is formulated as the fraction of the total number of optima 
+        An entry A[r][n] corresponds to the immediate regret after the n-th observation of the r-th
+        trial. "Immediate regret" is formulated as the fraction of the total number of optima
         found. NOTE: it is possible for there to be degenerate hits
     """
     k = len(optima)
@@ -289,7 +289,7 @@ def plot_size_H(ax, H: np.ndarray, q: int, T: int):
     ax
         the axis on which to plot
     H : np.ndarray
-        an `R x C x 2` array containing the acquisition and pruning history of each point in the 
+        an `R x C x 2` array containing the acquisition and pruning history of each point in the
         design  space, where R is the number of repeats and C is the total design space size. The 0th value of each entry is the iteration at which the given point was acquired and the 1st
         value is the iteration at which the point was pruned from the input space. A value of -1 indicates that the given event never occurred
     q : int
@@ -463,7 +463,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
     Y_p = Y_npz["PRUNE"]
     H = np.load(f"{npzdir}/H.npz")["PRUNE"]
 
-    T_mean = H.max((2,1)).mean(dtype=int)
+    T_mean = H.max((2, 1)).mean(dtype=int)
 
     n_max = n + T_mean * q
     handles = plot_IR(ax, Y_np, Y_p, n, n_max, -optima_ys, obj, choices)
@@ -504,7 +504,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
         gamma = float(npzdir.name)
         label = rf"${gamma}\,\hat\sigma^2$"
 
-        T_mean = H.max((2,1)).mean(dtype=int)
+        T_mean = H.max((2, 1)).mean(dtype=int)
 
         t = np.arange(T_mean + 1)
         F_nr = f_hits_pruned(H[:, :, 1], optima_idxs, T_mean)
@@ -751,6 +751,7 @@ def gamma_perf(gamma_dir, objective, outfile):
 
     fig.savefig(outfile, dpi=200, bbox_inches="tight")
 
+
 def fpr(npzdir, objective, outfile, all_traces: bool = False):
     N = 10000
     ds = 42
@@ -762,12 +763,12 @@ def fpr(npzdir, objective, outfile, all_traces: bool = False):
 
     y_all = -obj(choices).numpy()
     optima_idxs = np.argpartition(y_all, k)[:k]
-    
+
     fig, ax = plt.subplots(1, 1, figsize=(7, 6))
 
     H = np.load(npzdir / "H.npz")["PRUNE"]
 
-    T = H.max((2,1))
+    T = H.max((2, 1))
     T_mean = T.max()
 
     t = np.arange(T_mean + 1)
@@ -784,19 +785,10 @@ def fpr(npzdir, objective, outfile, all_traces: bool = False):
         )[0]
         c = handle.get_color()
         for f_nr in F_nr:
-            ax.plot(
-                t,
-                f_nr,
-                color=c,
-                lw=1.5,
-                alpha=0.2
-            )
+            ax.plot(t, f_nr, color=c, lw=1.5, alpha=0.2)
     else:
         handle = ax.plot(
-            t,
-            F_nr_mean,
-            lw=3,
-            path_effects=[pe.Stroke(linewidth=5, foreground="k"), pe.Normal()],
+            t, F_nr_mean, lw=3, path_effects=[pe.Stroke(linewidth=5, foreground="k"), pe.Normal()]
         )[0]
         ax.fill_between(
             t,
@@ -822,6 +814,7 @@ def fpr(npzdir, objective, outfile, all_traces: bool = False):
     # -------------------------------------------------------------------------------------#
 
     fig.savefig(outfile, dpi=400, bbox_inches="tight")
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -868,9 +861,7 @@ def main():
         "npzdir", type=Path, help="the directory containing the X, Y, and H .npz files"
     )
     fpr_parser.add_argument("objective", help="the objective function used for the runs")
-    fpr_parser.add_argument(
-        "--all-traces", action="store_true", help="plot each indivudal trace"
-    )
+    fpr_parser.add_argument("--all-traces", action="store_true", help="plot each indivudal trace")
     fpr_parser.add_argument("-o", "--outfile", type=Path)
 
     args = parser.parse_args()
@@ -885,6 +876,7 @@ def main():
         gamma_perf(args.gamma_dir, args.objective, args.outfile)
     elif args.figure == "fpr":
         fpr(args.npzdir, args.objective, args.outfile, args.all_traces)
+
 
 if __name__ == "__main__":
     main()
