@@ -16,6 +16,7 @@ This repository contains code for replicating the data and figures of the synthe
 - [Table of Contents](#table-of-contents)
 - [Setup](#setup)
 - [Testing](#testing)
+- [Contributing](#contributing)
 - [Running BOIP](#running-boip)
 - [Reproducing Data](#reproducing-data)
 - [Citation](#citation)
@@ -30,6 +31,8 @@ This repository contains code for replicating the data and figures of the synthe
 
 ## Installation
 1. `conda env create -f  `[`enviroment.yml`](./environment.yml)
+
+    *note:* you may need to edit this file to change to `pytorch` and `cudatoolkit` packages for your own system.
 1. `pip install .`
 
 # Testing
@@ -41,6 +44,9 @@ If BOIP was installed properly, all unit tests should pass. To run them:
 
 ## Integration Testing
 To perform a sample run of BOIP, run `boip --smoke-test`. This should generate output to your terminal containing the run parameters and perform 3 total runs. It will produce one folder, `smoke-test`, containing a single file, `out.npz`. This file should have 3 keys: `"X"`, `"Y"`, and `"H"`. If anything fails, check your installation and the unit tests first!
+
+# Contributing
+See the [contribution guide](./CONTRIBUTING.md)
 
 # Running BOIP
 
