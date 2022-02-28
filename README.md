@@ -1,6 +1,6 @@
 [//]: # (Badges)
-[![CI](https://github.com/davidegraff/dsp/actions/workflows/CI.yaml/badge.svg)](https://github.com/davidegraff/dsp/actions/workflows/CI.yaml)
-[![codecov](https://codecov.io/gh/davidegraff/dsp/branch/main/graph/badge.svg?token=DBBHSQLW8A)](https://codecov.io/gh/davidegraff/dsp)
+[![CI](https://github.com/coleygroup/dsp/actions/workflows/CI.yaml/badge.svg)](https://github.com/coleygroup/dsp/actions/workflows/CI.yaml)
+[![codecov](https://codecov.io/gh/coleygroup/dsp/branch/main/graph/badge.svg?token=DBBHSQLW8A)](https://codecov.io/gh/coleygroup/dsp)
 [![black](https://img.shields.io/badge/code%20style-black-000000.svg)]((https://github.com/psf/black))
 
 # DSP
