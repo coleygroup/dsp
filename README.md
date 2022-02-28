@@ -52,7 +52,7 @@ See the [contribution guide](./CONTRIBUTING.md)
 
 DSP is run via the command line like so:
 ```
-usage: DSP [-h] [-o {levy,beale,bukin,branin,camel,michalewicz,drop-wave}] [-c NUM_CHOICES] [-N N] [-q BATCH_SIZE] [-T T] [-R REPEATS]
+usage: dsp [-h] [-o {levy,beale,bukin,branin,camel,michalewicz,drop-wave}] [-c NUM_CHOICES] [-N N] [-q BATCH_SIZE] [-T T] [-R REPEATS]
             [-ds DISCRETIZATION_SEED] [-p PROB] [--k-or-threshold K_OR_THRESHOLD] [--use-observed-threshold]
             [-g GAMMA] [--output-dir OUTPUT_DIR] [--smoke-test] [--init-mode INIT_MODE] [-v]
 
