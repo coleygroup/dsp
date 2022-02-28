@@ -89,9 +89,18 @@ If a value for `R` was provided, then the files will be inverted: there will be 
 
 ## Experiments
 The three sets of experiments were run like so:
-1. general regret plots: `dsp -o OBJECTIVE -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025`
-1. `gamma` sweep:  `dsp -o michalewicz -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025 --gamma GAMMA`, where `GAMMA` was either `0.5`, `1.0`, or `2.0` (*note*: the `michalewicz` run from above is equivalent to setting `gamma` equal to `1.0`)
-1. observed hit thresholding:  `dsp -o michalewicz -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025  --use-observed-threshold`
+
+1. general regret plots:
+
+`dsp -o OBJECTIVE -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025`
+
+2. `gamma` sweep: 
+
+`dsp -o michalewicz -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025 --gamma GAMMA`, where `GAMMA` was either `0.5`, `1.0`, or `2.0` (*note*: the `michalewicz` run from above is equivalent to setting `gamma` equal to `1.0`)
+
+3. observed hit thresholding: 
+
+`dsp -o michalewicz -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025  --use-observed-threshold`
 
 the `--output-dir` argument for each run was of the form `path/to/OBJECTIVE/rep-R`, where `R` is the number of the given repetition. 100 repititions were performed for each run (using SLURM to maintain sanity.)
 
