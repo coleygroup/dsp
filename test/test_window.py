@@ -1,6 +1,6 @@
 import pytest
 
-from boip.window import window_size, WINDOW_THRESHOLD
+from dsp.window import window_size, WINDOW_THRESHOLD
 
 
 @pytest.mark.parametrize("t", [-2, -1])

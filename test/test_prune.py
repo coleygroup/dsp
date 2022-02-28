@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from boip.prune import pruned_idxs_prob, prob_above
+from dsp.prune import pruned_idxs_prob, prob_above
 
 
 @pytest.fixture(params=[100 * i + 1 for i in range(4)])

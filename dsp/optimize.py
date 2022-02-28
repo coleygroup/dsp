@@ -10,9 +10,9 @@ from torch import Tensor
 from torch.optim import Adam
 from tqdm import tqdm
 
-from boip.initialize import InitMode, initialize
-from boip.prune import prune
-from boip.train import fit_model
+from dsp.initialize import InitMode, initialize
+from dsp.prune import prune
+from dsp.train import fit_model
 
 
 def optimize(
@@ -59,7 +59,7 @@ def optimize(
     init_seed: Optional[int] = None
         the seed with which to sample random initial points
     init_mode: InitMode = InitMode.UNIFORM
-        the method by which to select initial points. See `boip.initalize.initialize` for more
+        the method by which to select initial points. See `dsp.initalize.initialize` for more
         details
     verbose : int, default=0
         the amount of information to print

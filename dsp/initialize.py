@@ -5,7 +5,7 @@ from scipy.stats import qmc
 import torch
 from torch import Tensor
 
-from boip.utils import AutoName
+from dsp.utils import AutoName
 
 
 class InitMode(AutoName):

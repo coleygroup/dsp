@@ -4,7 +4,7 @@ import pytest
 
 import numpy as np
 
-from boip.cli.args import parse_args
+from dsp.cli.args import parse_args
 
 
 @pytest.fixture(params=[1, 0.5, random(), -10, 5e6, 42])

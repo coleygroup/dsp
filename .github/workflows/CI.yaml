@@ -5,7 +5,7 @@ on:
     branches:
       - "main"
     paths:
-      - "boip/**"
+      - "dsp/**"
       - "test/**"
   pull_request:
     branches:
@@ -34,7 +34,7 @@ jobs:
       - name: setup conda
         uses: conda-incubator/setup-miniconda@v2
         with:
-          activate-environment: boip
+          activate-environment: dsp
           environment-file: ./.github/test-env.yml
           python-version: ${{ matrix.python-version }}
           auto-update-conda: false

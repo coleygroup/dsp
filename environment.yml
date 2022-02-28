@@ -1,4 +1,4 @@
-name: boip
+name: dsp
 
 channels:
   - pytorch

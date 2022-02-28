@@ -5,8 +5,8 @@ import numpy as np
 from torch import Tensor
 from tqdm import tqdm
 
-import boip
-from boip.cli.args import parse_args
+import dsp
+from dsp.cli.args import parse_args
 
 ART = [
     "******************************************",
@@ -34,17 +34,17 @@ def collate_results(
 
 def main():
     print("\n".join(ART))
-    print("boip will be run with the following arguments:")
+    print("dsp will be run with the following arguments:")
     args = parse_args()
     for k, v in sorted(vars(args).items()):
         print(f"  {k}: {v}")
     print()
 
     if args.smoke_test:
-        obj = boip.build_objective("michalewicz")
-        choices = boip.discretize(obj, 10000, 42)
+        obj = dsp.build_objective("michalewicz")
+        choices = dsp.discretize(obj, 10000, 42)
         results = [
-            boip.optimize(obj, 10, 20, choices, 10, True, 10, 0.025, gamma=2.0, verbose=True)
+            dsp.optimize(obj, 10, 20, choices, 10, True, 10, 0.025, gamma=2.0, verbose=True)
             for _ in tqdm(range(3), "smoke test")
         ]
         X, Y, H = collate_results(results)
@@ -60,14 +60,14 @@ def main():
         for k, v in sorted(vars(args).items()):
             fid.write(f"{k}: {v}\n")
 
-    obj = boip.build_objective(args.objective)
-    choices = boip.discretize(obj, args.num_choices, args.discretization_seed)
+    obj = dsp.build_objective(args.objective)
+    choices = dsp.discretize(obj, args.num_choices, args.discretization_seed)
 
     if args.repeats is None or args.repeats <= 1:
-        full = boip.optimize(
+        full = dsp.optimize(
             obj, args.N, args.T, choices, args.batch_size, False, verbose=args.verbose
         )
-        prune = boip.optimize(
+        prune = dsp.optimize(
             obj,
             args.N,
             args.T,
@@ -88,11 +88,11 @@ def main():
         exit()
 
     results_full = [
-        boip.optimize(obj, args.N, args.T, choices, args.batch_size, False, verbose=args.verbose)
+        dsp.optimize(obj, args.N, args.T, choices, args.batch_size, False, verbose=args.verbose)
         for _ in tqdm(range(args.repeats), "full", unit="rep")
     ]
     results_prune = [
-        boip.optimize(
+        dsp.optimize(
             obj,
             args.N,
             args.T,

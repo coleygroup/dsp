@@ -1,10 +1,10 @@
 [//]: # (Badges)
-[![CI](https://github.com/davidegraff/boip/actions/workflows/CI.yaml/badge.svg)](https://github.com/davidegraff/boip/actions/workflows/CI.yaml)
-[![codecov](https://codecov.io/gh/davidegraff/boip/branch/main/graph/badge.svg?token=DBBHSQLW8A)](https://codecov.io/gh/davidegraff/boip)
+[![CI](https://github.com/davidegraff/dsp/actions/workflows/CI.yaml/badge.svg)](https://github.com/davidegraff/dsp/actions/workflows/CI.yaml)
+[![codecov](https://codecov.io/gh/davidegraff/dsp/branch/main/graph/badge.svg?token=DBBHSQLW8A)](https://codecov.io/gh/davidegraff/dsp)
 [![black](https://img.shields.io/badge/code%20style-black-000000.svg)]((https://github.com/psf/black))
 
-# boip
-**B**ayesian **O**ptimization with **I**nput space **P**runing
+# DSP
+Bayesian Optimization with Active **D**esign **S**pace **P**runing
 
 <!-- FIGURE HERE -->
 
@@ -17,7 +17,7 @@ This repository contains code for replicating the data and figures of the synthe
 - [Setup](#setup)
 - [Testing](#testing)
 - [Contributing](#contributing)
-- [Running BOIP](#running-boip)
+- [Running dsp](#running-dsp)
 - [Reproducing Data](#reproducing-data)
 - [Citation](#citation)
 
@@ -38,21 +38,21 @@ This repository contains code for replicating the data and figures of the synthe
 # Testing
 
 ## Unit Tests
-If BOIP was installed properly, all unit tests should pass. To run them:
+If DSP was installed properly, all unit tests should pass. To run them:
 1. install the package with additional testing requirements: `pip install .[test]`
 1. run the tests: `pytest`
 
 ## Integration Testing
-To perform a sample run of BOIP, run `boip --smoke-test`. This should generate output to your terminal containing the run parameters and perform 3 total runs. It will produce one folder, `smoke-test`, containing a single file, `out.npz`. This file should have 3 keys: `"X"`, `"Y"`, and `"H"`. If anything fails, check your installation and the unit tests first!
+To perform a sample run of DSP, run `dsp --smoke-test`. This should generate output to your terminal containing the run parameters and perform 3 total runs. It will produce one folder, `smoke-test`, containing a single file, `out.npz`. This file should have 3 keys: `"X"`, `"Y"`, and `"H"`. If anything fails, check your installation and the unit tests first!
 
 # Contributing
 See the [contribution guide](./CONTRIBUTING.md)
 
-# Running BOIP
+# Running DSP
 
-BOIP is run via the command line like so:
+DSP is run via the command line like so:
 ```
-usage: boip [-h] [-o {levy,beale,bukin,branin,camel,michalewicz,drop-wave}] [-c NUM_CHOICES] [-N N] [-q BATCH_SIZE] [-T T] [-R REPEATS]
+usage: DSP [-h] [-o {levy,beale,bukin,branin,camel,michalewicz,drop-wave}] [-c NUM_CHOICES] [-N N] [-q BATCH_SIZE] [-T T] [-R REPEATS]
             [-ds DISCRETIZATION_SEED] [-p PROB] [--k-or-threshold K_OR_THRESHOLD] [--use-observed-threshold]
             [-g GAMMA] [--output-dir OUTPUT_DIR] [--smoke-test] [--init-mode INIT_MODE] [-v]
 
@@ -89,9 +89,9 @@ If a value for `R` was provided, then the files will be inverted: there will be 
 
 ## Experiments
 The three sets of experiments were run like so:
-1. general regret plots: `boip -o OBJECTIVE -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025`
-1. `gamma` sweep:  `boip -o michalewicz -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025 --gamma GAMMA`, where `GAMMA` was either `0.5`, `1.0`, or `2.0` (*note*: the `michalewicz` run from above is equivalent to setting `gamma` equal to `1.0`)
-1. observed hit thresholding:  `boip -o michalewicz -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025  --use-observed-threshold`
+1. general regret plots: `dsp -o OBJECTIVE -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025`
+1. `gamma` sweep:  `dsp -o michalewicz -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025 --gamma GAMMA`, where `GAMMA` was either `0.5`, `1.0`, or `2.0` (*note*: the `michalewicz` run from above is equivalent to setting `gamma` equal to `1.0`)
+1. observed hit thresholding:  `dsp -o michalewicz -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025  --use-observed-threshold`
 
 the `--output-dir` argument for each run was of the form `path/to/OBJECTIVE/rep-R`, where `R` is the number of the given repetition. 100 repititions were performed for each run (using SLURM to maintain sanity.)
 

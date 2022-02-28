@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from boip.initialize import InitMode, initialize
+from dsp.initialize import InitMode, initialize
 
 
 @pytest.fixture(params=[100, 500, 1000])

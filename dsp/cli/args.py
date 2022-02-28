@@ -1,8 +1,8 @@
 from argparse import ArgumentParser, Namespace
 from typing import Optional, Sequence
-from boip import objectives
+from dsp import objectives
 
-from boip.initialize import InitMode
+from dsp.initialize import InitMode
 
 
 def int_or_float(arg: str):

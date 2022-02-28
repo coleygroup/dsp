@@ -13,7 +13,7 @@ import seaborn as sns
 import torch
 from torch import Tensor
 
-import boip
+import dsp
 
 sns.set_theme("talk", "white")
 sns.set_palette("dark")
@@ -396,8 +396,8 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
     n = 10
     q = 10
 
-    obj = boip.objectives.build_objective("michalewicz")
-    choices = boip.objectives.discretize(obj, N, ds)
+    obj = dsp.objectives.build_objective("michalewicz")
+    choices = dsp.objectives.discretize(obj, N, ds)
 
     y_all = -obj(choices).numpy()
     optima_idxs = np.argpartition(y_all, k)[:k]
@@ -552,7 +552,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
 
 
 def surface_regret(npzdirs, outfile):
-    objs = [boip.objectives.build_objective(p.stem) for p in npzdirs]
+    objs = [dsp.objectives.build_objective(p.stem) for p in npzdirs]
 
     n = 10
     k = 10
@@ -563,7 +563,7 @@ def surface_regret(npzdirs, outfile):
 
     axs_2 = []
     for i, (obj, npzdir, label) in enumerate(zip(objs, npzdirs, string.ascii_uppercase)):
-        choices = boip.objectives.discretize(obj, 10000, 42)
+        choices = dsp.objectives.discretize(obj, 10000, 42)
 
         # X_npz = np.load(f"{npzdir}/X.npz")
         Y_npz = np.load(f"{npzdir}/Y.npz")
@@ -618,8 +618,8 @@ def surface_regret(npzdirs, outfile):
 
 
 def regret(npzdir, objective, outfile, all_traces: bool = False):
-    obj = boip.objectives.build_objective(objective)
-    choices = boip.objectives.discretize(obj, 10000, 42)
+    obj = dsp.objectives.build_objective(objective)
+    choices = dsp.objectives.discretize(obj, 10000, 42)
 
     k = 10
     n = 10
@@ -703,8 +703,8 @@ def gamma_perf(gamma_dir, objective, outfile):
 
     npzdirs = sorted(gamma_dir.iterdir(), key=lambda d: float(d.name))
 
-    obj = boip.build_objective(objective)
-    choices = boip.objectives.discretize(obj, N, ds)
+    obj = dsp.build_objective(objective)
+    choices = dsp.objectives.discretize(obj, N, ds)
 
     y_all = obj(choices).numpy()
     optimal_idxs = np.argpartition(y_all, -k)[-k:]
@@ -758,8 +758,8 @@ def fpr(npzdir, objective, outfile, all_traces: bool = False):
 
     k = 10
 
-    obj = boip.objectives.build_objective(objective)
-    choices = boip.objectives.discretize(obj, N, ds)
+    obj = dsp.objectives.build_objective(objective)
+    choices = dsp.objectives.discretize(obj, N, ds)
 
     y_all = -obj(choices).numpy()
     optima_idxs = np.argpartition(y_all, k)[:k]

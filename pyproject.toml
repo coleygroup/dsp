@@ -3,18 +3,18 @@ requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-write_to = "boip/_version.py"
+write_to = "dsp/_version.py"
 
 [tool.pytest.ini_options]
-addopts = "--cov boip"
+addopts = "--cov dsp"
 
 [tool.coverage.run]
 branch = true
 omit = [
-    "boip/_version.py",
-    "boip/objectives/gsobol.py",
-    "boip/objectives/cosines.py",
-    "boip/optimize.py"
+    "dsp/_version.py",
+    "dsp/objectives/gsobol.py",
+    "dsp/objectives/cosines.py",
+    "dsp/optimize.py"
 ]
 
 [tool.black]

@@ -5,7 +5,7 @@ on:
     branches:
       - "main"
     paths:
-      - "boip/**"
+      - "dsp/**"
   pull_request:
     branches:
       - "main"
@@ -20,5 +20,5 @@ jobs:
       
       - uses: psf/black@stable
         with:
-          src: "./boip"
+          src: "./dsp"
           options: "-l 100 -t py38 --skip-magic-trailing-comma"

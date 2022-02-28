@@ -3,7 +3,7 @@ import uuid
 
 import torch
 
-from boip import objectives
+from dsp import objectives
 
 
 @pytest.fixture(params=objectives.valid_objectives())
