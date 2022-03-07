@@ -105,9 +105,8 @@ def plot_acquired_points(ax, X, Y, zmin, zmax):
     )
 
 
-def immediate_regret(Y: np.ndarray, optima: np.ndarray) -> np.ndarray:
-    """calculate the immediate top-k regret for the observed values given the objective top-k
-    optima
+def f_hits_found(Y: np.ndarray, optima: np.ndarray) -> np.ndarray:
+    """calculate the fraction of the optima found
 
     Parameters
     ----------
@@ -121,9 +120,8 @@ def immediate_regret(Y: np.ndarray, optima: np.ndarray) -> np.ndarray:
     -------
     np.ndarray
         an `R x N` where r is number of repititions and N is the number of observations.
-        An entry A[r][n] corresponds to the immediate regret after the n-th observation of the r-th
-        trial. "Immediate regret" is formulated as the fraction of the total number of optima
-        found. NOTE: it is possible for there to be degenerate hits
+        An entry A[r][n] corresponds to the fraction of total optima found after the n-th
+        observation of the r-th trial. NOTE: it is possible for there to be degenerate optima
     """
     k = len(optima)
     Y = np.nan_to_num(Y, nan=-np.inf)
@@ -136,28 +134,28 @@ def immediate_regret(Y: np.ndarray, optima: np.ndarray) -> np.ndarray:
     return Y_star / len(optima)
 
 
-def add_regret_trace(ax, R: np.ndarray, x, label: str):
-    r = R.mean(0)
-    r_se = stats.sem(R, 0)
+def add_perf_trace(ax, F: np.ndarray, x, label: str):
+    f = F.mean(0)
+    f_se = stats.sem(F, 0)
 
     handles = ax.plot(
         x,
-        r,
+        f,
         label=label,
         lw=5,
         path_effects=[pe.Stroke(linewidth=7.5, foreground="k"), pe.Normal()],
     )
     c = handles[0].get_color()
 
-    ax.fill_between(x, r - r_se, r + r_se, alpha=0.5, lw=2.0, color=c, dashes=":", ec="black")
+    ax.fill_between(x, f - f_se, f + f_se, alpha=0.5, lw=2.0, color=c, dashes=":", ec="black")
 
     return handles
 
 
-def plot_IR(
+def plot_performance(
     ax, Y_np: np.ndarray, Y_p: np.ndarray, n_min: int, n_max: int, optima: np.ndarray, obj, choices
 ):
-    """plot the immediate regret curves of the dataset onto axis ax
+    """plot the performance curves of the dataset onto axis ax
 
     Parameters
     ----------
@@ -186,33 +184,33 @@ def plot_IR(
     handles = []
     x = np.arange(n_max)[n_min:] + 1
 
-    R = immediate_regret(Y_np, optima)[:, n_min:n_max]
-    handles.append(add_regret_trace(ax, R, x, "no pruning"))
+    F = f_hits_found(Y_np, optima)[:, n_min:n_max]
+    handles.append(add_perf_trace(ax, F, x, "baseline"))
 
-    R = immediate_regret(Y_p, optima)[:, n_min:n_max]
-    handles.append(add_regret_trace(ax, R, x, "pruning"))
+    F = f_hits_found(Y_p, optima)[:, n_min:n_max]
+    handles.append(add_perf_trace(ax, F, x, "DSP"))
 
-    R = gen_R_random(obj, *Y_p.shape, optima, choices)[:, n_min:n_max]
-    r = R.mean(0)
-    r_se = stats.sem(R, 0)
+    F = gen_F_random(obj, *Y_p.shape, optima, choices)[:, n_min:n_max]
+    f = F.mean(0)
+    f_se = stats.sem(F, 0)
 
     handles.append(
         ax.plot(
             x,
-            r,
+            f,
             c="grey",
             label="random",
             lw=5,
             path_effects=[pe.Stroke(linewidth=7.5, foreground="k"), pe.Normal()],
         )
     )
-    ax.fill_between(x, r - r_se, r + r_se, color="grey", alpha=0.7, dashes=":", lw=2.0, ec="black")
+    ax.fill_between(x, f - f_se, f + f_se, color="grey", alpha=0.7, dashes=":", lw=2.0, ec="black")
 
     return [h[0] for h in handles]
 
 
-def gen_R_random(obj, r: int, n: int, optima: Tensor, choices: Tensor):
-    """add a trace for random acquisition
+def gen_F_random(obj, r: int, n: int, optima: Tensor, choices: Tensor):
+    """generate peformance data for random acquisition
 
     Parameters
     ----------
@@ -228,7 +226,7 @@ def gen_R_random(obj, r: int, n: int, optima: Tensor, choices: Tensor):
     Returns
     -------
     np.ndarray
-        the immediate regret matrix for random acquisition
+        the performance matrix for random acquisition
     """
     idxs = torch.empty((r, n)).long()
     for i in range(r):
@@ -237,7 +235,7 @@ def gen_R_random(obj, r: int, n: int, optima: Tensor, choices: Tensor):
     X = choices[idxs]
     Y = obj(X).numpy()
 
-    return immediate_regret(Y, optima)
+    return f_hits_found(Y, optima)
 
 
 def plot_surface(
@@ -335,15 +333,21 @@ def f_hits_pruned(H, hit_idxs, T):
     return np.cumsum(hits_pruned_t, 1) / len(hit_idxs)
 
 
-def plot_IR_all(ax, x: np.ndarray, Y: np.ndarray, n: int, optima: np.ndarray, color):
-    """plot the immediate regret curves of the dataset onto axis ax
+def get_median_index(F: np.ndarray) -> int:
+    return np.argsort(F.sum(1))[round(len(F) // 2, 0)]
+
+
+def plot_fraction_all(
+    ax, x: np.ndarray, Y: np.ndarray, n: int, optima: np.ndarray, color, cap: bool = False
+):
+    """plot the fractional performance curves of the dataset onto axis ax
 
     Parameters
     ----------
     ax
         the axis on which to plot the curves
     x : np.ndarray
-        a vector of the x-value for each regret trace
+        a vector of the x-value for each performance trace
     Y : np.ndarray
         an iterable of `r x t` array, where each entry is the observation made at
         iteration t of trial r for a specific dataset
@@ -351,24 +355,30 @@ def plot_IR_all(ax, x: np.ndarray, Y: np.ndarray, n: int, optima: np.ndarray, co
         the number of initial random observations
     optima : np.ndarray
         the optimal objective values
+    cap : bool, default=False
+        whether to cap the individual traces
 
     Returns
     -------
     List
         the artists corresponding to the plotted curves
     """
-    R = immediate_regret(Y, optima)[:, n : n + len(x)]
-    r = np.median(R, 0)
+    F = f_hits_found(Y, optima)[:, n : n + len(x)]
+
+    i = get_median_index(F)
+    f = F[i][~np.isnan(Y[i][x])]
+    x_ = 1 + np.arange(len(f))
 
     ax.plot(
-        x,
-        np.median(R, 0),
-        color=color,
-        lw=3,
-        path_effects=[pe.Stroke(linewidth=5, foreground="k"), pe.Normal()],
+        x_, f, color=color, lw=3, path_effects=[pe.Stroke(linewidth=5, foreground="k"), pe.Normal()]
     )
-    for r in R:
-        ax.plot(x, r, color=color, lw=1.5, alpha=0.25)
+
+    for y, f in zip(Y, F):
+        f = f[~np.isnan(y[x])]
+        x_ = 1 + np.arange(len(f))
+        ax.plot(x_, f, color=color, lw=1.5, alpha=0.25)
+        if cap:
+            ax.plot(x_[-1], f[-1], ".", color=color, mec="k")
 
     ax.grid(True, axis="y", ls="--")
     ax.tick_params(axis="x", which="both", direction="out", bottom=True)
@@ -466,7 +476,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
     T_mean = H.max((2, 1)).mean(dtype=int)
 
     n_max = n + T_mean * q
-    handles = plot_IR(ax, Y_np, Y_p, n, n_max, -optima_ys, obj, choices)
+    handles = plot_performance(ax, Y_np, Y_p, n, n_max, -optima_ys, obj, choices)
 
     ax_twin = ax.twinx()
     handles.append(plot_size_H(ax_twin, H, q, T_mean))
@@ -551,7 +561,7 @@ def michalewicz(npzdir: Path, gamma_dir: Path, outfile: Path):
     fig.savefig(outfile, dpi=400, bbox_inches="tight")
 
 
-def surface_regret(npzdirs, outfile):
+def surface_performance(npzdirs, outfile):
     objs = [dsp.objectives.build_objective(p.stem) for p in npzdirs]
 
     n = 10
@@ -579,7 +589,7 @@ def surface_regret(npzdirs, outfile):
         plot_surface(axs[0][i], obj, optimal_choices)
 
         ax1 = axs[1][i]
-        handles = plot_IR(ax1, Y_np, Y_p, n, Y_p.shape[1], optima, obj, choices)
+        handles = plot_performance(ax1, Y_np, Y_p, n, Y_p.shape[1], optima, obj, choices)
 
         ax2 = ax1.twinx()
         handles.append(plot_size_H(ax2, H, q, Y_p.shape[1] // q))
@@ -617,7 +627,7 @@ def surface_regret(npzdirs, outfile):
     fig.savefig(outfile, dpi=400, bbox_inches="tight")
 
 
-def regret(npzdir, objective, outfile, all_traces: bool = False):
+def perf(npzdir, objective, outfile, all_traces: bool = False):
     obj = dsp.objectives.build_objective(objective)
     choices = dsp.objectives.discretize(obj, 10000, 42)
 
@@ -638,7 +648,7 @@ def regret(npzdir, objective, outfile, all_traces: bool = False):
 
         H = np.load(f"{npzdir}/H.npz")["PRUNE"]
 
-        handles = plot_IR(ax, Y_np, Y_p, n, Y_p.shape[1], optima, obj, choices)
+        handles = plot_performance(ax, Y_np, Y_p, n, Y_p.shape[1], optima, obj, choices)
 
         ax_twin = ax.twinx()
         handles.append(plot_size_H(ax_twin, H, q, Y_p.shape[1] // q))
@@ -655,9 +665,9 @@ def regret(npzdir, objective, outfile, all_traces: bool = False):
 
         ax_twin.legend(
             handles=handles,
-            loc="upper center",
+            loc="center right",
             bbox_transform=ax.transAxes,
-            bbox_to_anchor=[0.33, 1],
+            bbox_to_anchor=(1.0, 0.6),
         )
 
         ax.set_xlabel("Objective Evaluations")
@@ -672,17 +682,18 @@ def regret(npzdir, objective, outfile, all_traces: bool = False):
         x = np.arange(Y_p.shape[1])[n:]
 
         Ys = [Y_np, Y_p]
-        for ax, Y, c in zip(axs, Ys, sns.color_palette("dark", len(Ys))):
-            plot_IR_all(ax, x, Y, n, optima, c)
+        colors = sns.color_palette("dark", len(Ys))
+        plot_fraction_all(axs[0], x, Y_np, n, optima, colors[0])
+        plot_fraction_all(axs[1], x, Y_p, n, optima, colors[1], cap=True)
 
-        ax.xaxis.set_major_locator(MultipleLocator(500))
-        ax.xaxis.set_minor_locator(MultipleLocator(100))
+        axs[1].xaxis.set_major_locator(MultipleLocator(200))
+        axs[1].xaxis.set_minor_locator(MultipleLocator(100))
 
-        axs[0].set_title("no pruning")
-        axs[1].set_title("pruning")
+        axs[0].set_title("baseline")
+        axs[1].set_title("DSP")
 
         fig.supylabel(r"Fraction of Top-$10$ Identified", x=0.07, fontsize=18)
-        ax.set_xlabel("Objective Evaluations", y=-0.05, fontsize=18)
+        axs[1].set_xlabel("Objective Evaluations", y=-0.05, fontsize=18)
 
         fig.supylabel(r"Fraction of Top-$10$ Identified", x=0.07, fontsize=18)
         axs[1].set_xlabel("Objective Evaluations", y=-0.05, fontsize=18)
@@ -725,7 +736,7 @@ def gamma_perf(gamma_dir, objective, outfile):
         optimal_idxs = np.argpartition(y_all, -k)[-k:]
         optima = y_all[optimal_idxs]
 
-        handles = plot_IR(ax, Y_np, Y_p, n, Y_p.shape[1], optima, obj, choices)
+        handles = plot_performance(ax, Y_np, Y_p, n, Y_p.shape[1], optima, obj, choices)
 
         ax2 = ax.twinx()
         handles.append(plot_size_H(ax2, H, q, H.max() + 1))
@@ -768,24 +779,28 @@ def fpr(npzdir, objective, outfile, all_traces: bool = False):
 
     H = np.load(npzdir / "H.npz")["PRUNE"]
 
-    T = H.max((2, 1))
-    T_mean = T.max()
+    T = H.max((2, 1))  # the maximum iteration for each trial
+    max_iters = T.max()
 
-    t = np.arange(T_mean + 1)
-    F_nr = f_hits_pruned(H[:, :, 1], optima_idxs, T_mean)
+    t = np.arange(max_iters + 1)
+    F_nr = f_hits_pruned(H[:, :, 1], optima_idxs, max_iters)
     F_nr_mean = F_nr.mean(0)
     F_nr_sem = stats.sem(F_nr, 0)
 
     if all_traces:
+        i = get_median_index(F_nr + 1e-6)  # add small amount of noise to differeniate longer runs
+        t_ = np.arange(1 + H[i].max())
+        f_nr = F_nr[i][: 1 + H[i].max()]
+
         handle = ax.plot(
-            t,
-            np.median(F_nr, 0),
-            lw=3,
-            path_effects=[pe.Stroke(linewidth=5, foreground="k"), pe.Normal()],
+            t_, f_nr, lw=3, path_effects=[pe.Stroke(linewidth=5, foreground="k"), pe.Normal()]
         )[0]
         c = handle.get_color()
-        for f_nr in F_nr:
-            ax.plot(t, f_nr, color=c, lw=1.5, alpha=0.2)
+        for h, f_nr in zip(H, F_nr):
+            f_nr = f_nr[: h.max() + 1]
+            t_ = np.arange(1 + h.max())
+            ax.plot(t_, f_nr, color=c, lw=1.5, alpha=0.2)
+            ax.plot(t_[-1], f_nr[-1], ".", color=c, mec="k")
     else:
         handle = ax.plot(
             t, F_nr_mean, lw=3, path_effects=[pe.Stroke(linewidth=5, foreground="k"), pe.Normal()]
@@ -801,7 +816,7 @@ def fpr(npzdir, objective, outfile, all_traces: bool = False):
             alpha=0.3,
         )
 
-    ax.xaxis.set_minor_locator(MultipleLocator(1))
+    # ax.xaxis.set_minor_locator(MultipleLocator(1))
     ax.xaxis.set_major_locator(MultipleLocator(5))
     ax.yaxis.set_major_locator(MultipleLocator(0.1))
     ax.tick_params(axis="x", which="both", direction="out", bottom=True)
@@ -833,19 +848,17 @@ def main():
     )
     mich_parser.add_argument("-o", "--outfile", type=Path)
 
-    combo_parser = subparsers.add_parser("combo", help="surface+regret multi-panel figure")
+    combo_parser = subparsers.add_parser("combo", help="surface+performance multi-panel figure")
     combo_parser.add_argument("npzdirs", nargs="+", type=Path)
     combo_parser.add_argument("-o", "--outfile", type=Path)
 
-    regret_parser = subparsers.add_parser("regret", help="regret plot for a single objective")
-    regret_parser.add_argument(
+    perf_parser = subparsers.add_parser("perf", help="performance plot for a single objective")
+    perf_parser.add_argument(
         "npzdir", type=Path, help="the directory containing the X, Y, and H .npz files"
     )
-    regret_parser.add_argument("objective", help="the objective function used for the runs")
-    regret_parser.add_argument(
-        "--all-traces", action="store_true", help="plot each indivudal trace"
-    )
-    regret_parser.add_argument("-o", "--outfile", type=Path)
+    perf_parser.add_argument("objective", help="the objective function used for the runs")
+    perf_parser.add_argument("--all-traces", action="store_true", help="plot each indivudal trace")
+    perf_parser.add_argument("-o", "--outfile", type=Path)
 
     gamma_parser = subparsers.add_parser("gamma-perf", help="gamma sweep multi-panel figure")
     gamma_parser.add_argument(
@@ -869,9 +882,9 @@ def main():
     if args.figure == "michalewicz":
         michalewicz(args.npzdir, args.gamma_dir, args.outfile)
     elif args.figure == "combo":
-        surface_regret(args.npzdirs, args.outfile)
-    elif args.figure == "regret":
-        regret(args.npzdir, args.objective, args.outfile, args.all_traces)
+        surface_performance(args.npzdirs, args.outfile)
+    elif args.figure == "perf":
+        perf(args.npzdir, args.objective, args.outfile, args.all_traces)
     elif args.figure == "gamma-perf":
         gamma_perf(args.gamma_dir, args.objective, args.outfile)
     elif args.figure == "fpr":
