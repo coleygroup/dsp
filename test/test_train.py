@@ -1,8 +1,6 @@
 from copy import deepcopy
 import pytest
 
-from botorch.acquisition import UpperConfidenceBound
-from botorch.test_functions.base import BaseTestProblem
 from botorch.models import SingleTaskGP
 from gpytorch.mlls import ExactMarginalLogLikelihood
 import torch
