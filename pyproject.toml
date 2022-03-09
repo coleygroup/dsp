@@ -14,7 +14,9 @@ omit = [
     "dsp/_version.py",
     "dsp/objectives/gsobol.py",
     "dsp/objectives/cosines.py",
-    "dsp/optimize.py"
+    "dsp/optimize.py",
+    "*/__init__.py",
+    "dsp/cli/*"
 ]
 
 [tool.black]
