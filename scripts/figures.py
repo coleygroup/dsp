@@ -185,10 +185,10 @@ def plot_performance(
     x = np.arange(n_max)[n_min:] + 1
 
     F = f_hits_found(Y_np, optima)[:, n_min:n_max]
-    handles.append(add_perf_trace(ax, F, x, "baseline"))
+    handles.append(add_perf_trace(ax, F, x, "BO"))
 
     F = f_hits_found(Y_p, optima)[:, n_min:n_max]
-    handles.append(add_perf_trace(ax, F, x, "DSP"))
+    handles.append(add_perf_trace(ax, F, x, "BO+DSP"))
 
     F = gen_F_random(obj, *Y_p.shape, optima, choices)[:, n_min:n_max]
     f = F.mean(0)
@@ -689,8 +689,8 @@ def perf(npzdir, objective, outfile, all_traces: bool = False):
         axs[1].xaxis.set_major_locator(MultipleLocator(200))
         axs[1].xaxis.set_minor_locator(MultipleLocator(100))
 
-        axs[0].set_title("baseline")
-        axs[1].set_title("DSP")
+        axs[0].set_title("BO")
+        axs[1].set_title("BO+DSP")
 
         fig.supylabel(r"Fraction of Top-$10$ Identified", x=0.07, fontsize=18)
         axs[1].set_xlabel("Objective Evaluations", y=-0.05, fontsize=18)
