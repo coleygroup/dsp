@@ -9,7 +9,7 @@ Bayesian Optimization with Active **D**esign **S**pace **P**runing
 <!-- FIGURE HERE -->
 
 # Overview
-This repository contains code for replicating the data and figures of the synthetic test function experiments from the paper **INSERT_PAPER_NAME_HERE**
+This repository contains code for replicating the data and figures of the synthetic test function experiments from the paper "Self-focusing virtual screening with active design space pruning"
 
 # Table of Contents
 - [Overview](#overview)
