@@ -96,7 +96,7 @@ The three sets of experiments were run like so:
 
 2. `gamma` sweep: 
 
-`dsp -o michalewicz -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025 --gamma GAMMA`, where `GAMMA` was either `0.5`, `1.0`, or `2.0` (*note*: the `michalewicz` run from above is equivalent to setting `gamma` equal to `1.0`)
+`dsp -o michalewicz -c 10000 -ds 42 -N 10 -T 200 -q 10 -p 0.025 --gamma GAMMA`, where `GAMMA` is either `0.5`, `1.0`, or `2.0` (*note*: the `michalewicz` run from above is equivalent to setting `gamma` equal to `1.0`)
 
 3. observed hit thresholding: 
 
@@ -104,8 +104,12 @@ The three sets of experiments were run like so:
 
 the `--output-dir` argument for each run was of the form `path/to/OBJECTIVE/rep-R`, where `R` is the number of the given repetition. 100 repititions were performed for each run (using SLURM to maintain sanity.)
 
+4. `p` sweep:
+
+`dsp -o michalewicz -c 10000 -ds 42 -N 10 -T 200 -q 10 -p P`, where `P` is either `0.0125`, `0.025`, or `0.05` (*note*: the `michalewicz` run from above is equivalent to setting `p` equal to `0.025`)
+
 ## Processing and organizing data
-After each set of runs was complete, the runs were collated: `python scripts/collate.py --parent-dir path/to/OBJECTIVE`
+After each set of runs was complete, the runs were collated: `python scripts/collate.py --parent-dir path/to/parent_dir`, where each individual individual run is stored under `parent_dir` and given a unique name.
 
 You can optionally run this script with the `--clean` flag to consolidate your directory structure by deleting the individual run subdirectories (no information is lost as all runs are stored in the resulting array). However, you can't rerun the script with new data after `clean`ing, i.e., perform additional runs and stack them onto the `collate`d results.
 
