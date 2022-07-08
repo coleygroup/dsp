@@ -763,6 +763,66 @@ def gamma_perf(gamma_dir, objective, outfile):
     fig.savefig(outfile, dpi=200, bbox_inches="tight")
 
 
+def prob_perf(prob_dir, objective, outfile):
+    fig, axs = plt.subplots(1, 3, figsize=(6 * 3, 6), sharey=True)
+
+    N = 10000
+    ds = 42
+    k = 10
+    n = 10
+    q = 10
+
+    npzdirs = sorted(prob_dir.iterdir(), key=lambda d: float(d.name))
+
+    obj = dsp.build_objective(objective)
+    choices = dsp.objectives.discretize(obj, N, ds)
+
+    y_all = obj(choices).numpy()
+    optimal_idxs = np.argpartition(y_all, -k)[-k:]
+    optima = y_all[optimal_idxs]
+
+    axs_2 = []
+    for ax, npzdir in zip(axs, npzdirs):
+        p_star = float(npzdir.name) / 100
+        title = rf"$p^{{*}}={p_star}$"
+        ax.set_title(title)
+
+        Y_npz = np.load(f"{npzdir}/Y.npz")
+        Y_np = Y_npz["FULL"]
+        Y_p = Y_npz["PRUNE"]
+        H = np.load(f"{npzdir}/H.npz")["PRUNE"]
+
+        y_all = obj(choices).numpy()
+        optimal_idxs = np.argpartition(y_all, -k)[-k:]
+        optima = y_all[optimal_idxs]
+
+        handles = plot_performance(ax, Y_np, Y_p, n, Y_p.shape[1], optima, obj, choices)
+
+        ax2 = ax.twinx()
+        handles.append(plot_size_H(ax2, H, q, H.max() + 1))
+        axs_2.append(ax2)
+
+        ax.xaxis.set_major_locator(MultipleLocator(100))
+        ax.tick_params(axis="x", which="both", direction="out", bottom=True)
+        ax.grid(True, axis="y", ls="--")
+        ax2.set_ylim(ax.get_ylim())
+
+    for ax2 in axs_2[:-1]:
+        ax2.sharey(axs_2[-1])
+        ax2.tick_params("y", labelright=False, colors="green")
+    axs_2[-1].tick_params("y", colors="green")
+
+    fig.legend(handles=handles, ncol=2, bbox_to_anchor=(0.075, -0.05), loc="lower left")
+
+    axs[0].set_ylabel(r"Fraction of Top-$10$ Identified")
+    axs_2[-1].set_ylabel("Relative Input Space Size")
+    fig.supxlabel("Objective Evaluations", fontsize=18)
+
+    fig.tight_layout()
+
+    fig.savefig(outfile, dpi=200, bbox_inches="tight")
+
+
 def fpr(npzdir, objective, outfile, all_traces: bool = False):
     N = 10000
     ds = 42
@@ -839,12 +899,12 @@ def main():
 
     mich_parser = subparsers.add_parser("michalewicz", help="michalewicz multi-panel figure")
     mich_parser.add_argument(
-        "npzdir", type=Path, help="the directory containing the X, Y, and H .npz files"
+        "npzdir", type=Path, help="the directory containing the {X,Y,H}.npz files"
     )
     mich_parser.add_argument(
         "gamma_dir",
         type=Path,
-        help="the grandparent directory containing the 0.5, 1.0, and 2.0 parent directories that contain the corresponding the X, Y, and H .npz files",
+        help="the grandparent directory containing the 0.5, 1.0, and 2.0 parent directories that contain the corresponding the {X,Y,H}.npz files",
     )
     mich_parser.add_argument("-o", "--outfile", type=Path)
 
@@ -854,24 +914,33 @@ def main():
 
     perf_parser = subparsers.add_parser("perf", help="performance plot for a single objective")
     perf_parser.add_argument(
-        "npzdir", type=Path, help="the directory containing the X, Y, and H .npz files"
+        "npzdir", type=Path, help="the directory containing the {X,Y,H}.npz files"
     )
     perf_parser.add_argument("objective", help="the objective function used for the runs")
     perf_parser.add_argument("--all-traces", action="store_true", help="plot each indivudal trace")
     perf_parser.add_argument("-o", "--outfile", type=Path)
 
-    gamma_parser = subparsers.add_parser("gamma-perf", help="gamma sweep multi-panel figure")
+    gamma_parser = subparsers.add_parser("gamma", help="gamma sweep multi-panel figure")
     gamma_parser.add_argument(
         "gamma_dir",
         type=Path,
-        help="the grandparent directory containing the 0.5, 1.0, and 2.0 parent directories that contain the corresponding the X, Y, and H .npz files",
+        help="the grandparent directory containing the 0.5, 1.0, and 2.0 parent directories that contain the corresponding the {X,Y,H}.npz files",
+    )
+    gamma_parser.add_argument("objective", help="the objective function used for the runs")
+    gamma_parser.add_argument("-o", "--outfile", type=Path)
+
+    gamma_parser = subparsers.add_parser("prob", help="gamma sweep multi-panel figure")
+    gamma_parser.add_argument(
+        "prob_dir",
+        type=Path,
+        help="the grandparent directory containing the 1.25, 2.5, and 5.0 parent directories that contain the corresponding the {X,Y,H}.npz files",
     )
     gamma_parser.add_argument("objective", help="the objective function used for the runs")
     gamma_parser.add_argument("-o", "--outfile", type=Path)
 
     fpr_parser = subparsers.add_parser("fpr", help="False pruning rate plot for a single objective")
     fpr_parser.add_argument(
-        "npzdir", type=Path, help="the directory containing the X, Y, and H .npz files"
+        "npzdir", type=Path, help="the directory containing the {X,Y,H}.npz files"
     )
     fpr_parser.add_argument("objective", help="the objective function used for the runs")
     fpr_parser.add_argument("--all-traces", action="store_true", help="plot each indivudal trace")
@@ -885,8 +954,10 @@ def main():
         surface_performance(args.npzdirs, args.outfile)
     elif args.figure == "perf":
         perf(args.npzdir, args.objective, args.outfile, args.all_traces)
-    elif args.figure == "gamma-perf":
+    elif args.figure == "gamma":
         gamma_perf(args.gamma_dir, args.objective, args.outfile)
+    elif args.figure == "prob":
+        prob_perf(args.prob_dir, args.objective, args.outfile)
     elif args.figure == "fpr":
         fpr(args.npzdir, args.objective, args.outfile, args.all_traces)
 
