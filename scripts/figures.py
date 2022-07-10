@@ -763,7 +763,72 @@ def gamma_perf(gamma_dir, objective, outfile):
     fig.savefig(outfile, dpi=200, bbox_inches="tight")
 
 
-def prob_perf(prob_dir, objective, outfile):
+def prob_single(prob_dir, objective, outfile):
+    fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+
+    N = 10000
+    ds = 42
+    k = 10
+
+    obj = dsp.objectives.build_objective(objective)
+    choices = dsp.objectives.discretize(obj, N, ds)
+
+    y_all = -obj(choices).numpy()
+    optima_idxs = np.argpartition(y_all, k)[:k]
+
+    npzdirs = sorted(prob_dir.iterdir(), key=lambda d: float(d.name))[::-1]
+    palette = sns.color_palette("magma", len(npzdirs))
+
+    for npzdir, c in zip(npzdirs, palette):
+        H = np.load(npzdir / "H.npz")["PRUNE"]
+
+        p_star = float(npzdir.name)
+        label = rf"$p^*={p_star/100}$"
+
+        T_mean = H.max((2, 1)).mean(dtype=int)
+
+        t = np.arange(T_mean + 1)
+        F_nr = f_hits_pruned(H[:, :, 1], optima_idxs, T_mean)
+        F_nr_mean = F_nr.mean(0)
+        F_nr_sem = stats.sem(F_nr, 0)
+
+        ax.plot(
+            t,
+            F_nr_mean,
+            color=c,
+            lw=3,
+            path_effects=[pe.Stroke(linewidth=5, foreground="k"), pe.Normal()],
+            label=label,
+        )
+        ax.fill_between(
+            t,
+            F_nr_mean - F_nr_sem,
+            F_nr_mean + F_nr_sem,
+            color=c,
+            dashes=":",
+            lw=2,
+            ec="black",
+            alpha=0.3,
+        )
+
+    ax.legend()
+
+    ax.xaxis.set_minor_locator(MultipleLocator(1))
+    ax.xaxis.set_major_locator(MultipleLocator(5))
+    ax.yaxis.set_major_locator(MultipleLocator(0.1))
+    ax.tick_params(axis="x", which="both", direction="out", bottom=True)
+    ax.grid(axis="y", ls="--")
+
+    ax.set_ylabel("Fraction of Top-10 Pruned", fontsize=16)
+    ax.set_xlabel("Iteration", fontsize=16)
+    ax.tick_params(axis="both", labelsize=16)
+
+    fig.tight_layout()
+
+    fig.savefig(outfile, dpi=200, bbox_inches="tight")
+
+
+def prob_triple(prob_dir, objective, outfile):
     fig, axs = plt.subplots(1, 3, figsize=(6 * 3, 6), sharey=True)
 
     N = 10000
@@ -929,7 +994,16 @@ def main():
     gamma_parser.add_argument("objective", help="the objective function used for the runs")
     gamma_parser.add_argument("-o", "--outfile", type=Path)
 
-    gamma_parser = subparsers.add_parser("prob", help="gamma sweep multi-panel figure")
+    gamma_parser = subparsers.add_parser("prob_single", help="probability sweep multi-panel figure")
+    gamma_parser.add_argument(
+        "prob_dir",
+        type=Path,
+        help="the grandparent directory containing the 1.25, 2.5, and 5.0 parent directories that contain the corresponding the {X,Y,H}.npz files",
+    )
+    gamma_parser.add_argument("objective", help="the objective function used for the runs")
+    gamma_parser.add_argument("-o", "--outfile", type=Path)
+
+    gamma_parser = subparsers.add_parser("prob_triple", help="probability sweep multi-panel figure")
     gamma_parser.add_argument(
         "prob_dir",
         type=Path,
@@ -956,8 +1030,10 @@ def main():
         perf(args.npzdir, args.objective, args.outfile, args.all_traces)
     elif args.figure == "gamma":
         gamma_perf(args.gamma_dir, args.objective, args.outfile)
-    elif args.figure == "prob":
-        prob_perf(args.prob_dir, args.objective, args.outfile)
+    elif args.figure == "prob_single":
+        prob_single(args.prob_dir, args.objective, args.outfile)
+    elif args.figure == "prob_triple":
+        prob_triple(args.prob_dir, args.objective, args.outfile)
     elif args.figure == "fpr":
         fpr(args.npzdir, args.objective, args.outfile, args.all_traces)
 

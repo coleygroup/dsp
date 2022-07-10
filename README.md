@@ -118,7 +118,7 @@ To create the figures using the [figures script](scripts/figures.py), the proces
 ## Figures
 Figures used in the manuscript were generated via the [figures script](./scripts/figures.py). The script may be run like so:
 ```
-usage: figures.py [-h] {michalewicz,combo,regret,gamma-perf,fpr} ...
+usage: figures.py [-h] {michalewicz,combo,perf,gamma,prob_single,prob_triple,fpr} ...
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -126,11 +126,13 @@ optional arguments:
 figure:
   the figure you would like to make
 
-  {michalewicz,combo,regret,gamma-perf,fpr}
+  {michalewicz,combo,perf,gamma,prob_single,prob_triple,fpr}
     michalewicz         michalewicz multi-panel figure
-    combo               surface+regret multi-panel figure
-    regret              regret plot for a single objective
-    gamma-perf          gamma sweep multi-panel figure
+    combo               surface+performance multi-panel figure
+    perf                performance plot for a single objective
+    gamma               gamma sweep multi-panel figure
+    prob_single         probability sweep single-panel FPR figure
+    prob_triple         probability sweep multi-panel performance+pruning figure
     fpr                 False pruning rate plot for a single objective
 ```
 To see additional arguments needed for the corresponding figure, run the script with the desired `figure` followed by the `--help` flag. The data used to generate figures in the manuscript is located in the [data](./data) directory, and a sample script to generate a few of the figures is located [here](./scripts/make_all_figs.sh). Note that the script has a few variables hard-coded in: the design space space size, the discretization seed, the number of iterations, the batch size, and the number of iterations. If you run your experiments with non-default values (as defined above,) then you'll have to edit them in the script.
